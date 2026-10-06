@@ -31,6 +31,14 @@
   var historyEl = document.querySelector(".shell-history ul");
   var step = 0;
 
+  var userMovedSincePlay = false;
+  var programmaticScroll = false;
+  function noteUserMove() { userMovedSincePlay = true; }
+  window.addEventListener("touchstart", noteUserMove, { passive: true });
+  window.addEventListener("wheel", noteUserMove, { passive: true });
+  window.addEventListener("scroll", function () {
+    if (!programmaticScroll) userMovedSincePlay = true;
+  }, { passive: true });
   function syncPlayBar() {
     var bar = document.querySelector(".shell-controls");
     if (!bar) return;
@@ -42,7 +50,7 @@
     var barLine = document.getElementById("bar-result");
     if (barLine) barLine.textContent = text;
     syncPlayBar();
-    if (scroll && resultEl) {
+    if (scroll && resultEl && !userMovedSincePlay) {
       var bar = document.querySelector(".shell-controls");
       var barTop = bar && getComputedStyle(bar).position === "fixed" ? bar.getBoundingClientRect().top : window.innerHeight;
       var rect = resultEl.getBoundingClientRect();
@@ -50,7 +58,9 @@
       var headerBottom = header ? header.getBoundingClientRect().bottom : 0;
       if (rect.bottom > barTop - 8 || rect.top < headerBottom) {
         var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        programmaticScroll = true;
         resultEl.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+        setTimeout(function () { programmaticScroll = false; }, 900);
       }
     }
     if (historyEl) {
@@ -239,6 +249,7 @@
     }, 400);
   }
   function play(index, btn) {
+    userMovedSincePlay = false;
     var data = rounds[id][index];
     var painter = painters[id];
     if (id === "slots") {

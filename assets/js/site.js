@@ -441,7 +441,26 @@
       + '<div class="field"><label for="pw">Password</label><input class="input" id="pw" type="password" autocomplete="' + (mode === "register" ? "new-password" : "current-password") + '" required></div>'
       + (mode === "register" ? '<label class="check"><input type="checkbox" id="age"><span>I am 18 or older.</span></label>' : "")
       + '<p class="err" id="err" role="alert" hidden></p><button class="btn btn-gold btn-block" type="submit">' + (mode === "register" ? "Register" : "Sign in") + '</button><p class="auth-switch">' + (mode === "register" ? '<a class="btn btn-ghost" href="login.html">Already have a sample session?</a>' : '<a class="btn btn-ghost" href="register.html">Register</a>') + "</p></form>";
-    $("#form").onsubmit = function (e) {
+    var form = $("#form");
+    var invalidSeen = false;
+    function placeField(field) {
+      var wrap = field.closest(".field") || field.closest("label") || field;
+      wrap.scrollIntoView({ block: "start", behavior: "auto" });
+      field.focus({ preventScroll: true });
+    }
+    form.addEventListener("invalid", function (e) {
+      e.preventDefault();
+      if (invalidSeen) return;
+      invalidSeen = true;
+      var err = $("#err");
+      if (err) {
+        err.hidden = false;
+        err.textContent = e.target.validationMessage || "Check this field.";
+      }
+      placeField(e.target);
+      setTimeout(function () { invalidSeen = false; }, 0);
+    }, true);
+    form.onsubmit = function (e) {
       e.preventDefault();
       var err = $("#err");
       function fail(msg, field) {
@@ -449,7 +468,7 @@
         err.textContent = msg;
         if (field) {
           if (field.id === "age") field.setAttribute("aria-describedby", "err");
-          field.focus();
+          placeField(field);
         }
       }
       var email = $("#email").value.trim();
