@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en" data-back-href="../../games.html">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#07140e">
+<meta name="description" content="Hold the Span: steer your squad through math gates and hold the bridge against the horde. Free to play.">
+<title>Hold the Span</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="../valorem-skin.css">
+</head>
+<body data-arcade="play">
+<div id="app">
+  <canvas id="game" aria-label="Game view"></canvas>
+
+  <div id="labels" aria-hidden="true">
+    <div id="squadTag" class="tag tag-squad" hidden><span id="squadTagNum">0</span></div>
+    <div id="bossTag" class="tag tag-boss" hidden><span id="bossTagNum">0</span></div>
+    <div id="pops"></div>
+  </div>
+  <div id="flash" aria-hidden="true"></div>
+
+  <header id="hud" hidden>
+    <button id="btnPause" class="icon-btn" aria-label="Pause">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+    </button>
+    <div class="hud-mid">
+      <div id="hudLevel" class="hud-level"><span class="lvl-prefix">Level 1</span> <span class="lvl-name"></span></div>
+      <div class="hud-row">
+        <span class="hud-squad" aria-label="Squad size"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8z"/></svg><span id="hudSquad">0</span></span>
+        <div class="progress" role="progressbar" aria-label="Level progress" aria-valuemin="0" aria-valuemax="100"><span id="progFill"></span><span id="progBoss" class="prog-boss"></span></div>
+      </div>
+      <div id="bossBar" class="bossbar" hidden><span id="bossFill"></span><em>Brute</em></div>
+    </div>
+    <div class="hud-score"><span class="lbl">Score</span><span id="hudScore">0</span></div>
+  </header>
+  <div id="hint" class="hint" hidden>Drag anywhere to steer</div>
+
+  <!-- Title -->
+  <section id="scrTitle" class="screen" data-screen>
+    <div class="panel panel-title">
+      <a class="back-link" id="backLink" href="../../games.html" target="_top"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Back to games</span></a>
+      <div class="brand">
+        <svg class="emblem" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 56 14v18c0 14-10 24-24 28C18 56 8 46 8 32V14z" fill="none" stroke="currentColor" stroke-width="3"/><path d="M16 38h32M20 38v-8M28 38v-12M36 38v-12M44 38v-8M14 30c6-8 30-8 36 0" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+        <h1>Hold the Span</h1>
+        <p class="tagline">Steer the squad. Grab the right gates. Hold the bridge.</p>
+      </div>
+      <div class="btn-stack">
+        <button class="btn btn-primary" id="btnPlay">Play</button>
+        <button class="btn" data-go="levels">Levels</button>
+        <button class="btn" id="btnEndless">Endless</button>
+        <button class="btn" data-go="upgrades">Upgrades</button>
+      </div>
+      <div class="title-meta">
+        <span class="points-chip">Points <strong class="js-points">0</strong></span>
+        <button class="btn btn-ghost js-sound" aria-pressed="false">Sound off</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Level select -->
+  <section id="scrLevels" class="screen" data-screen hidden>
+    <div class="panel">
+      <div class="panel-head">
+        <button class="icon-btn" data-go="title" aria-label="Back"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <h2>Choose a level</h2>
+      </div>
+      <div id="levelList" class="level-list"></div>
+    </div>
+  </section>
+
+  <!-- Upgrades -->
+  <section id="scrUpgrades" class="screen" data-screen hidden>
+    <div class="panel">
+      <div class="panel-head">
+        <button class="icon-btn js-up-back" aria-label="Back"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <h2>Upgrades</h2>
+        <span class="points-chip">Points <strong class="js-points">0</strong></span>
+      </div>
+      <p class="muted">Spend points earned in play. Points come only from playing.</p>
+      <div id="upgradeList" class="upgrade-list"></div>
+      <button class="btn btn-primary btn-block js-up-continue">Continue</button>
+    </div>
+  </section>
+
+  <!-- Pause -->
+  <section id="scrPause" class="screen screen-dim" data-screen hidden role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+    <div class="panel panel-narrow">
+      <h2 id="pauseTitle">Paused</h2>
+      <div class="btn-stack">
+        <button class="btn btn-primary" id="btnResume">Resume</button>
+        <button class="btn" id="btnRestart">Restart level</button>
+        <button class="btn js-sound" aria-pressed="false">Sound off</button>
+        <button class="btn btn-ghost" id="btnQuit">Quit to menu</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Game over -->
+  <section id="scrOver" class="screen screen-dim" data-screen hidden role="dialog" aria-modal="true" aria-labelledby="overTitle">
+    <div class="panel panel-narrow">
+      <p class="eyebrow">Squad lost</p>
+      <h2 id="overTitle">The span fell</h2>
+      <dl class="stats">
+        <div><dt>Score</dt><dd id="overScore">0</dd></div>
+        <div><dt>Progress</dt><dd id="overProg">0%</dd></div>
+        <div><dt>Points earned</dt><dd id="overPts">0</dd></div>
+      </dl>
+      <div class="btn-stack">
+        <button class="btn btn-primary" id="btnRetry">Retry</button>
+        <button class="btn" data-go="upgrades" data-from="over">Upgrades</button>
+        <button class="btn btn-ghost" data-go="title">Menu</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Victory -->
+  <section id="scrWin" class="screen screen-dim" data-screen hidden role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="panel panel-narrow">
+      <p class="eyebrow">Span held</p>
+      <h2 id="winTitle">Victory</h2>
+      <div id="winStars" class="stars" aria-label="Stars"></div>
+      <dl class="stats">
+        <div><dt>Soldiers left</dt><dd id="winSquad">0</dd></div>
+        <div><dt>Score</dt><dd id="winScore">0</dd></div>
+        <div><dt>Points earned</dt><dd id="winPts">0</dd></div>
+      </dl>
+      <div class="btn-stack">
+        <button class="btn btn-primary" id="btnNext">Next level</button>
+        <button class="btn" data-go="upgrades" data-from="win">Upgrades</button>
+        <button class="btn btn-ghost" data-go="title">Menu</button>
+      </div>
+    </div>
+  </section>
+
+  <footer id="legal" class="legal">Free to play. No purchase and no wager.</footer>
+  <noscript><p class="noscript">Hold the Span needs JavaScript and WebGL.</p></noscript>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

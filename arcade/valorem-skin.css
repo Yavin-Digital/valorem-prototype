@@ -1,0 +1,43 @@
+/* Valorem skin for the embedded arcade builds. Chrome only; canvas palettes stay with each game. */
+@font-face {
+  font-family: "Jost";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../../assets/fonts/jost.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url("../../assets/fonts/cormorant-garamond.woff2") format("woff2");
+}
+:root {
+  --bg: #07140e;
+  --panel: rgba(12, 31, 22, 0.92);
+  --surface: rgba(238, 243, 238, 0.06);
+  --surface-hover: rgba(238, 243, 238, 0.12);
+  --surface-dim: rgba(238, 243, 238, 0.03);
+  --line: rgba(238, 243, 238, 0.14);
+  --line-strong: rgba(238, 243, 238, 0.26);
+  --line-dim: rgba(238, 243, 238, 0.08);
+  --text: #eef3ee;
+  --muted: #c5d1c6;
+  --hud-label: #d7e0d4;
+  --hud-chip: rgba(6, 17, 12, 0.72);
+  --accent: #d9b75f;
+  --accent-ink: #1a1203;
+  --blue: #9fd7b8;
+  --red: #f08080;
+  --danger-fill: linear-gradient(90deg, #6e2430, #a33b48);
+  --font: "Jost", system-ui, sans-serif;
+  --gold: #d9b75f;
+}
+html, body {
+  background: #07140e !important;
+  color: #eef3ee;
+}
+footer, footer .free { color: #c5d1c6; }
+footer .free { color: #d9b75f; }
+.hbtn:hover, .hbtn:focus-visible, .menu-btn:focus-visible { border-color: #d9b75f; }
