@@ -659,7 +659,7 @@
     for (const u of [E.params.get('back'), window.RETRO_BACK_URL, m && m.content]) if (ok(u)) return new URL(u, location.href).href;
     return new URL('../', location.href).href;
   };
-  E.wireBackLinks = function () { document.querySelectorAll('[data-back-link]').forEach(a => { a.href = E.backUrl(); }); };
+  E.wireBackLinks = function () { document.querySelectorAll('[data-back-link]').forEach(a => { a.href = E.backUrl(); a.target = '_top'; }); };
 
   // ---------------------------------------------------------------- layout
   E.fit = function () {
@@ -763,7 +763,7 @@
     for (const t of menuCfg.toggles) add(t.label + ': ' + (t.get() ? 'On' : 'Off'), () => { t.set(!t.get()); E.refreshMenu(); focusId('menu-' + t.key); }, 'menu-' + t.key, t.get());
     add('Controls', () => { const h = document.getElementById('help-panel'); h.hidden = !h.hidden; if (!h.hidden) { const c = h.querySelector('button'); if (c) c.focus(); } }, 'menu-help');
     for (const a of menuCfg.actions) add(a.label, () => { E.resume(); a.fn(); }, 'menu-' + a.key);
-    add('Back to arcade', () => { location.href = E.backUrl(); }, 'menu-back');
+    add('Back to arcade', () => { (window.top || window).location.href = E.backUrl(); }, 'menu-back');
   };
   function focusId(id) { const el = document.getElementById(id); if (el) el.focus(); }
   E.setupChrome = function (cfg) {

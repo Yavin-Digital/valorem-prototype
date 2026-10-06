@@ -485,7 +485,7 @@
           "label": "Spade",
           "art": {
             "kind": "glyph",
-            "value": "♠"
+            "value": "♠︎"
           }
         },
         {
@@ -493,7 +493,7 @@
           "label": "Heart",
           "art": {
             "kind": "glyph",
-            "value": "♥"
+            "value": "♥︎"
           }
         },
         {
@@ -501,7 +501,7 @@
           "label": "Diamond",
           "art": {
             "kind": "glyph",
-            "value": "♦"
+            "value": "♦︎"
           }
         },
         {
@@ -509,7 +509,7 @@
           "label": "Club",
           "art": {
             "kind": "glyph",
-            "value": "♣"
+            "value": "♣︎"
           }
         }
       ],

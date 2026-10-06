@@ -432,7 +432,7 @@ export const gameSkins = [
         label: "Spade",
         art: {
           kind: "glyph",
-          value: "♠",
+          value: "♠︎",
         },
       },
       {
@@ -440,7 +440,7 @@ export const gameSkins = [
         label: "Heart",
         art: {
           kind: "glyph",
-          value: "♥",
+          value: "♥︎",
         },
       },
       {
@@ -448,7 +448,7 @@ export const gameSkins = [
         label: "Diamond",
         art: {
           kind: "glyph",
-          value: "♦",
+          value: "♦︎",
         },
       },
       {
@@ -456,7 +456,7 @@ export const gameSkins = [
         label: "Club",
         art: {
           kind: "glyph",
-          value: "♣",
+          value: "♣︎",
         },
       }
     ],

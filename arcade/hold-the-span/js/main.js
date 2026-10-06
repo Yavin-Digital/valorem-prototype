@@ -2459,7 +2459,7 @@ function frame(now) {
 // Back to games link (configurable for embedding; see js/config.js).
 {
   const link = document.getElementById('backLink'), href = resolveBackHref();
-  if (href) { link.href = href; link.querySelector('span').textContent = EMBED.backLabel; } else link.hidden = true;
+  if (href) { link.href = href; link.target = '_top'; link.querySelector('span').textContent = EMBED.backLabel; } else link.hidden = true;
   // stop rendering as soon as Back is pressed so the click is never queued behind a long frame on weak devices
   link.addEventListener('pointerdown', () => { loopStopped = true; });
   window.addEventListener('pageshow', (e) => { if (e.persisted && loopStopped) { loopStopped = false; last = performance.now(); requestAnimationFrame(frame); } });

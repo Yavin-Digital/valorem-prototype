@@ -84,7 +84,7 @@
   ];
 
   function blank() {
-    return { signedIn: false, name: "", email: "", gold: 0, ips: 0, cart: [], ledger: [], holds: {}, confirmed: {}, orders: [], requests: [], reminder: 0, ipsOnOrder: 0 };
+    return { signedIn: false, name: "", email: "", gold: 0, ips: 0, cart: [], ledger: [], holds: {}, confirmed: {}, orders: [], requests: [], reminder: 0, ipsOnOrder: 0, receipt: null };
   }
   function load() {
     try {
@@ -96,7 +96,13 @@
     } catch (e) { return blank(); }
   }
   var state = load();
-  function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+  function save() {
+    localStorage.setItem(KEY, JSON.stringify(state));
+    var badge = $(".cart-count");
+    if (badge) badge.textContent = String(cartCount());
+    var cartLink = $(".cart-link");
+    if (cartLink) cartLink.setAttribute("aria-label", "Cart, " + cartCount() + (cartCount() === 1 ? " item" : " items"));
+  }
 
   function $(sel, root) { return (root || document).querySelector(sel); }
   function money(n) { return "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -165,6 +171,7 @@
       var cur = item[2] === page ? ' aria-current="page"' : "";
       return '<a href="' + item[1] + '"' + cur + ">" + item[0] + "</a>";
     }).join("");
+    var cartLink = '<a class="tool-link cart-link" href="cart.html" aria-label="Cart, ' + cartCount() + (cartCount() === 1 ? " item" : " items") + '"><span class="cart-word">Cart</span><span class="cart-count">' + cartCount() + "</span></a>";
     var tool = state.signedIn
       ? '<a class="bal-link" href="wallet.html"><span class="bal-full"><small>' + GOLD + '</small>' + num(state.gold) + '</span><span class="bal-full"><small>' + IPS + '</small>' + num(state.ips) + '</span><span class="bal-short">Wallet</span></a>'
       : '<a class="tool-link" href="login.html">Sign in</a>';
@@ -179,7 +186,7 @@
       + '<header class="site-header"><div class="wrap header-bar">'
       + '<a class="brand" href="index.html"><img src="assets/img/mark.svg" alt="" width="36" height="36"><span>Valorem</span></a>'
       + '<nav class="primary" aria-label="Primary">' + links + "</nav>"
-      + '<div class="header-tools">' + tool
+      + '<div class="header-tools">' + cartLink + tool
       + '<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu-panel">Menu</button>'
       + "</div></div>"
       + '<div id="menu-panel" class="menu-panel" hidden><div class="wrap">'
@@ -211,10 +218,25 @@
       var btn = $(".nav-toggle", top);
       var panel = $("#menu-panel", top);
       if (btn && panel) {
+        function setMenu(open) {
+          btn.setAttribute("aria-expanded", open ? "true" : "false");
+          panel.hidden = !open;
+        }
         btn.addEventListener("click", function () {
-          var open = btn.getAttribute("aria-expanded") === "true";
-          btn.setAttribute("aria-expanded", open ? "false" : "true");
-          panel.hidden = open;
+          setMenu(btn.getAttribute("aria-expanded") !== "true");
+        });
+        panel.addEventListener("click", function (e) {
+          if (e.target.closest("a")) setMenu(false);
+        });
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && btn.getAttribute("aria-expanded") === "true") {
+            setMenu(false);
+            btn.focus();
+          }
+        });
+        document.addEventListener("click", function (e) {
+          if (panel.hidden) return;
+          if (!top.contains(e.target)) setMenu(false);
         });
       }
     }
@@ -268,7 +290,7 @@
       var line = state.cart.filter(function (l) { return l.sku === p.sku; })[0];
       if (line) line.qty += 1; else state.cart.push({ sku: p.sku, qty: 1 });
       save();
-      toast("Added to cart", p.name);
+      toast("Added to cart", p.name + ' <a href="cart.html">View cart</a>');
     };
   }
   function paintCart() {
@@ -280,7 +302,7 @@
     }
     host.innerHTML = '<div class="split"><div class="card">' + state.cart.map(function (l) {
       var p = product(l.sku);
-      return '<div class="card-pad" style="display:grid;grid-template-columns:96px 1fr auto;gap:12px;align-items:center;border-bottom:1px solid var(--line)"><img src="' + p.photo + '" alt="" width="96" height="72" style="width:96px;height:72px;object-fit:cover;border-radius:8px"><div><b>' + p.name + '</b><div class="muted">' + money(p.usd) + '</div></div><div class="btn-row"><button class="btn btn-quiet" type="button" data-dec="' + p.sku + '">−</button><span style="min-width:24px;text-align:center">' + l.qty + '</span><button class="btn btn-quiet" type="button" data-inc="' + p.sku + '">+</button></div></div>';
+      return '<div class="cart-line"><img src="' + p.photo + '" alt="" width="96" height="72"><div><b>' + p.name + '</b><div class="muted">' + money(p.usd) + '</div></div><div class="qty"><button class="btn btn-quiet" type="button" data-dec="' + p.sku + '" aria-label="Decrease quantity, ' + p.name + '">−</button><span aria-live="polite">' + l.qty + '</span><button class="btn btn-quiet" type="button" data-inc="' + p.sku + '" aria-label="Increase quantity, ' + p.name + '">+</button></div></div>';
     }).join("") + '</div><aside class="card card-pad"><h2>Summary</h2><dl class="kv"><dt>Items</dt><dd>' + cartCount() + '</dd><dt class="total">Total</dt><dd class="total">' + money(cartTotal()) + '</dd></dl><p class="fine">Sample merchandise. ' + IPS + " may be applied at checkout, 1 " + IPS + " per $1, down to $0.</p><a class='btn btn-gold btn-block' href='checkout.html'>Checkout</a></aside></div>";
     host.onclick = function (e) {
       var d = e.target.getAttribute("data-dec");
@@ -314,10 +336,20 @@
     var maxIps = mode === "shop" ? Math.min(state.ips, Math.floor(total)) : 0;
     state.ipsOnOrder = Math.min(state.ipsOnOrder || 0, maxIps);
     var due = Math.max(0, total - (mode === "shop" ? state.ipsOnOrder : 0));
+    var kept = {
+      name: $("#name") ? $("#name").value : state.name,
+      num: $("#num") ? $("#num").value : "",
+      exp: $("#exp") ? $("#exp").value : "",
+      cvc: $("#cvc") ? $("#cvc").value : ""
+    };
     var summary = mode === "pack"
       ? '<h2>' + pack.name + ' pack</h2><dl class="kv"><dt>Price</dt><dd>' + money(pack.usd) + '</dd><dt>' + GOLD + '</dt><dd>' + num(pack.gold) + '</dd><dt>' + IPS + ' included</dt><dd>' + pack.ips + '</dd><dt class="total">Due</dt><dd class="total">' + money(pack.usd) + '</dd></dl><p class="fine">Sample pack. ' + IPS + " are included at 1 per $1 and are not sold on their own. " + GOLD + " packs are non-refundable in the live product. A declined payment adds nothing.</p>"
       : '<h2>Shop order</h2><dl class="kv"><dt>Merchandise</dt><dd>' + money(total) + '</dd><dt>' + IPS + ' applied</dt><dd>' + state.ipsOnOrder + '</dd><dt class="total">Due</dt><dd class="total">' + money(due) + '</dd></dl><div class="btn-row" style="margin:12px 0"><button class="btn btn-quiet" type="button" id="ips-dec">Fewer ' + IPS + '</button><button class="btn btn-quiet" type="button" id="ips-inc">More ' + IPS + '</button></div><p class="fine">1 ' + IPS + ' marks $1 off, down to $0. You have ' + num(state.ips) + ' ' + IPS + '.</p>';
-    host.innerHTML = '<div class="split"><form class="card card-pad" id="pay"><h2>Payment</h2><div class="note">Sample checkout. No card is charged. Use 4242 4242 4242 4242 to complete, or 4000 0000 0000 0002 to see a decline.</div><div class="field"><label for="name">Name on card</label><input class="input" id="name" autocomplete="cc-name" value="' + state.name + '"></div><div class="field"><label for="num">Card number</label><input class="input" id="num" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456"></div><div class="grid g2"><div class="field"><label for="exp">Expiry</label><input class="input" id="exp" inputmode="numeric" placeholder="MM / YY"></div><div class="field"><label for="cvc">Security code</label><input class="input" id="cvc" inputmode="numeric" placeholder="123"></div></div><p class="err" id="pay-err" hidden></p><button class="btn btn-gold btn-block" type="submit">Pay ' + money(due) + '</button></form><aside class="card card-pad">' + summary + '</aside></div>';
+    host.innerHTML = '<div class="split"><form class="card card-pad" id="pay"><h2>Payment</h2><div class="note">Sample checkout. No card is charged. Use 4242 4242 4242 4242 to complete, or 4000 0000 0000 0002 to see a decline.</div><div class="field"><label for="name">Name on card</label><input class="input" id="name" autocomplete="cc-name"></div><div class="field"><label for="num">Card number</label><input class="input" id="num" inputmode="numeric" autocomplete="cc-number" maxlength="19" placeholder="1234 5678 9012 3456"></div><div class="grid g2"><div class="field"><label for="exp">Expiry</label><input class="input" id="exp" inputmode="numeric" autocomplete="cc-exp" placeholder="MM / YY"></div><div class="field"><label for="cvc">Security code</label><input class="input" id="cvc" inputmode="numeric" autocomplete="cc-csc" enterkeyhint="go" placeholder="123"></div></div><p class="err" id="pay-err" role="alert" hidden></p><button class="btn btn-gold btn-block" type="submit">Pay ' + money(due) + '</button></form><aside class="card card-pad">' + summary + '</aside></div>';
+    $("#name").value = kept.name;
+    $("#num").value = kept.num;
+    $("#exp").value = kept.exp;
+    $("#cvc").value = kept.cvc;
     var dec = $("#ips-dec");
     var inc = $("#ips-inc");
     if (dec) dec.onclick = function () { state.ipsOnOrder = Math.max(0, state.ipsOnOrder - 1); save(); paintCheckout(); };
@@ -402,15 +434,23 @@
       + '<div class="field"><label for="email">Email</label><input class="input" id="email" type="email" autocomplete="email" required></div>'
       + '<div class="field"><label for="pw">Password</label><input class="input" id="pw" type="password" autocomplete="' + (mode === "register" ? "new-password" : "current-password") + '" required></div>'
       + (mode === "register" ? '<label class="check"><input type="checkbox" id="age"><span>I am 18 or older.</span></label>' : "")
-      + '<p class="err" id="err" hidden></p><button class="btn btn-gold btn-block" type="submit">' + (mode === "register" ? "Register" : "Sign in") + '</button><p class="muted" style="margin-top:16px">' + (mode === "register" ? '<a href="login.html">Already have a sample session?</a>' : '<a href="register.html">Register</a>') + "</p></form>";
+      + '<p class="err" id="err" role="alert" hidden></p><button class="btn btn-gold btn-block" type="submit">' + (mode === "register" ? "Register" : "Sign in") + '</button><p class="auth-switch">' + (mode === "register" ? '<a class="btn btn-ghost" href="login.html">Already have a sample session?</a>' : '<a class="btn btn-ghost" href="register.html">Register</a>') + "</p></form>";
     $("#form").onsubmit = function (e) {
       e.preventDefault();
       var err = $("#err");
+      function fail(msg, field) {
+        err.hidden = false;
+        err.textContent = msg;
+        if (field) {
+          if (field.id === "age") field.setAttribute("aria-describedby", "err");
+          field.focus();
+        }
+      }
       var email = $("#email").value.trim();
       var pw = $("#pw").value;
-      if (email.indexOf("@") < 1) { err.hidden = false; err.textContent = "Enter an email address."; return; }
-      if (pw.length < 4) { err.hidden = false; err.textContent = "Use at least 4 characters."; return; }
-      if (mode === "register" && !$("#age").checked) { err.hidden = false; err.textContent = "Confirm that you are 18 or older."; return; }
+      if (email.indexOf("@") < 1) { fail("Enter an email address.", $("#email")); return; }
+      if (pw.length < 4) { fail("Use at least 4 characters.", $("#pw")); return; }
+      if (mode === "register" && !$("#age").checked) { fail("Confirm that you are 18 or older.", $("#age")); return; }
       var entered = mode === "register" ? $("#name").value.trim() : "";
       var keep = state.email === email && state.name ? state.name : "Sample player";
       signIn(entered || keep, email);
@@ -474,12 +514,16 @@
         pager += '<button class="pill" type="button" data-b="' + b + '" aria-pressed="' + (b === block) + '">' + a + "–" + z + "</button>";
       }
       var secs = Math.ceil(holdLeft(w.slug) / 1000);
-      side.innerHTML = '<section class="card card-pad" aria-label="Seat map"><h2>Numbered seats</h2><p class="muted">' + PACK.copy.seatHoldHint + '</p>'
+      var clock = selected.length
+        ? '<p class="hold-clock" id="clock" aria-hidden="true">Held for ' + secs + ' seconds</p><span id="clock-live" class="sr-only" aria-live="polite">Held for ' + secs + " seconds</span>"
+        : '<p class="hold-clock">Choose a numbered seat</p>';
+      var review = selected.length ? '<a class="btn btn-silver" href="webinar-confirm.html?e=' + w.slug + '">Review ' + selected.length + "</a>" : "";
+      side.innerHTML = '<section class="card card-pad seat-card" aria-label="Seat map"><h2>Numbered seats</h2><p class="muted">' + PACK.copy.seatHoldHint + '</p>'
         + '<div class="legend"><span><i class="swatch" style="background:var(--seat-open-bg);border:1px solid var(--seat-open-line)"></i>Open</span><span><i class="swatch" style="background:var(--seat-mine-bg)"></i>Held</span><span><i class="swatch" style="background:var(--seat-taken-bg)"></i>Taken</span><span><i class="swatch" style="background:var(--seat-confirmed)"></i>Confirmed</span></div>'
-        + '<div class="filters" id="pager">' + pager + '</div><div class="seat-map" id="map">' + seats + '</div>'
-        + '<div class="btn-row" style="margin-top:12px"><button class="btn btn-ghost" type="button" id="pick">Pick numbered seats</button>'
-        + (selected.length ? '<a class="btn btn-silver" href="webinar-confirm.html?e=' + w.slug + '">Review ' + selected.length + "</a>" : "")
-        + "</div>" + (selected.length ? '<p class="hold-clock" id="clock">Held for ' + secs + " seconds</p>" : "") + "</section>";
+        + '<div class="filters" id="pager">' + pager + '</div>'
+        + '<div class="hold-bar">' + clock + review + '</div>'
+        + '<div class="seat-map" id="map">' + seats + '</div>'
+        + '<div class="btn-row" style="margin-top:12px"><button class="btn btn-ghost" type="button" id="pick">Pick numbered seats</button></div></section>';
       $("#pager").onclick = function (e) {
         var btn = e.target.closest("[data-b]");
         if (!btn) return;
@@ -518,12 +562,19 @@
       };
     }
     draw();
+    var spokenBucket = -1;
     setInterval(function () {
       var clock = $("#clock");
       if (!clock) return;
       var secs = Math.ceil(holdLeft(w.slug) / 1000);
-      if (secs <= 0) draw();
-      else clock.textContent = "Held for " + secs + " seconds";
+      if (secs <= 0) { spokenBucket = -1; draw(); return; }
+      clock.textContent = "Held for " + secs + " seconds";
+      var live = $("#clock-live");
+      var bucket = Math.ceil(secs / 5);
+      if (live && bucket !== spokenBucket) {
+        spokenBucket = bucket;
+        live.textContent = "Held for " + secs + " seconds";
+      }
     }, 250);
   }
 
@@ -542,7 +593,7 @@
       }
       var cost = h.seats.length * w.price;
       var secs = Math.ceil(left / 1000);
-      host.innerHTML = '<div class="card card-pad"><span class="sample">Confirm</span><h1>Confirm seats</h1><p>' + w.title + "</p><p>Seats " + h.seats.slice().sort(function (a, b) { return a - b; }).join(", ") + "</p><dl class='kv'><dt>Price</dt><dd>" + cost + " " + IPS + "</dd><dt>Your " + IPS + "</dt><dd>" + num(state.ips) + '</dd><dt>Hold</dt><dd class="hold-clock" id="cclock">' + secs + " seconds</dd></dl><p class='muted'>Confirming extends the hold briefly, then burns " + IPS + ".</p><p class='err' id='cerr' hidden></p><div class='btn-row'><button class='btn btn-silver' type='button' id='do'>Confirm seats</button><a class='btn btn-ghost' href='webinar.html?e=" + w.slug + "'>Back to the map</a></div></div>";
+      host.innerHTML = '<div class="card card-pad"><span class="sample">Confirm</span><h1>Confirm seats</h1><p>' + w.title + "</p><p>Seats " + h.seats.slice().sort(function (a, b) { return a - b; }).join(", ") + "</p><dl class='kv'><dt>Price</dt><dd>" + cost + " " + IPS + "</dd><dt>Your " + IPS + "</dt><dd>" + num(state.ips) + '</dd><dt>Hold</dt><dd class="hold-clock" id="cclock">' + secs + " seconds</dd></dl><p class='muted'>Confirming extends the hold briefly, then burns " + IPS + ".</p><p class='err' id='cerr' role='alert' hidden></p><div class='btn-row'><button class='btn btn-silver' type='button' id='do'>Confirm seats</button><a class='btn btn-ghost' href='webinar.html?e=" + w.slug + "'>Back to the map</a></div></div>";
       $("#do").onclick = function () {
         if (holdLeft(w.slug) <= 0) { draw(); return; }
         var need = h.seats.length * w.price;
@@ -570,7 +621,9 @@
     var host = $("#amoe");
     if (!host) return;
     if (!state.signedIn) { host.innerHTML = gate("amoe.html"); return; }
-    host.innerHTML = '<form class="card card-pad" id="amoe-form"><h1>Free entry</h1><p class="muted">Web form for a signed-in player. The amount and any caps are set by the operator. There is no mail-in path in this prototype.</p><div class="field"><label for="nm">Name</label><input class="input" id="nm" value="' + state.name + '" required></div><div class="field"><label for="em">Email</label><input class="input" id="em" type="email" value="' + state.email + '" required></div><p class="fine">Submitting records a sample request on this device. It does not add ' + IPS + '.</p><button class="btn btn-ghost" type="submit">Submit request</button><p class="err" id="aerr" hidden></p><div id="adone"></div></form>';
+    host.innerHTML = '<form class="card card-pad" id="amoe-form"><h1>Free entry</h1><p class="muted">Web form for a signed-in player. The amount and any caps are set by the operator. There is no mail-in path in this prototype.</p><div class="field"><label for="nm">Name</label><input class="input" id="nm" autocomplete="name" required></div><div class="field"><label for="em">Email</label><input class="input" id="em" type="email" autocomplete="email" required></div><p class="fine">Submitting records a sample request on this device. It does not add ' + IPS + '.</p><button class="btn btn-ghost" type="submit">Submit request</button><p class="err" id="aerr" role="alert" hidden></p><div id="adone"></div></form>';
+    $("#nm").value = state.name;
+    $("#em").value = state.email;
     $("#amoe-form").onsubmit = function (e) {
       e.preventDefault();
       state.requests.unshift({ t: Date.now(), email: $("#em").value });
