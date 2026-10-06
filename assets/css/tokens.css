@@ -1,0 +1,68 @@
+/* Mirrors theme/valorem.theme.json. theme/valorem.pack.js sets the same custom properties at runtime. */
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("../fonts/cormorant-garamond.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Jost";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../fonts/jost.woff2") format("woff2");
+}
+:root {
+  color-scheme: dark;
+  --bg: #07140e;
+  --surface: #0c1f16;
+  --surface-2: #123024;
+  --surface-3: #1a3d2e;
+  --text: #eef3ee;
+  --muted: #c5d1c6;
+  --faint: #8fa392;
+  --accent: #d9b75f;
+  --danger: #f08080;
+  --gold: #d9b75f;
+  --gold-hi: #f3dc94;
+  --gold-lo: #c9a145;
+  --gold-ink: #1a1203;
+  --silver: #c3cad6;
+  --silver-hi: #f4f6f9;
+  --silver-ink: #0d111a;
+  --ok: #9fd7b8;
+  --line: rgba(238, 243, 238, 0.1);
+  --line-strong: rgba(238, 243, 238, 0.2);
+  --input-bg: #06110c;
+  --input-border: rgba(238, 243, 238, 0.38);
+  --metal-gold: linear-gradient(135deg, #f3dc94 0%, #d9b75f 45%, #c9a145 100%);
+  --metal-silver: linear-gradient(135deg, #f4f6f9 0%, #c3cad6 50%, #aeb6c2 100%);
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body: "Jost", system-ui, sans-serif;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --r: 8px;
+  --r-lg: 14px;
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 18px 40px rgba(0, 0, 0, 0.35);
+  --hdr: 72px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --seat-open-bg: #123024;
+  --seat-open-line: rgba(238, 243, 238, 0.17);
+  --seat-open-text: #eef3ee;
+  --seat-other: #8fa392;
+  --seat-taken-bg: #06110c;
+  --seat-taken-text: #8fa392;
+  --seat-mine-bg: #c3cad6;
+  --seat-mine-text: #0d111a;
+  --seat-confirmed: #d9b75f;
+  --game-felt: #07140e;
+  --game-surface: #123024;
+  --game-text: #eef3ee;
+  --game-muted: #c5d1c6;
+  --game-accent: #d9b75f;
+  --game-win: #24301a;
+  --game-danger: #f08080;
+}

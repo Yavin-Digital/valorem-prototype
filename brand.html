@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Brand standards · Valorem</title>
+<link rel="stylesheet" href="assets/css/tokens.css">
+<style>
+  body { margin: 0; background: #f4f1ea; color: #1a241c; font-family: "Jost", system-ui, sans-serif; font-size: 17px; line-height: 1.6; }
+  a { color: inherit; }
+  .top { background: #07140e; color: #eef3ee; padding: 28px 32px; display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .top a { min-height: 48px; display: inline-flex; align-items: center; color: #d9b75f; }
+  .wrap { width: min(1080px, calc(100% - 40px)); margin: 0 auto; }
+  .cover { margin: 28px auto; background: #07140e; color: #eef3ee; border-radius: 18px; padding: clamp(28px, 5vw, 56px); display: grid; grid-template-columns: 1.4fr .8fr; gap: 24px; align-items: center; }
+  .cover img { width: min(100%, 420px); }
+  .kicker { letter-spacing: .18em; text-transform: uppercase; color: #d9b75f; font-size: .8rem; font-weight: 600; }
+  h1, h2, h3 { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; line-height: 1.05; margin: 0 0 .4em; }
+  h1 { font-size: clamp(3rem, 7vw, 5.2rem); }
+  h2 { font-size: clamp(2rem, 4vw, 2.8rem); }
+  section { padding: 28px 0 10px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; background: #fff; border: 1px solid #e4ddd0; border-radius: 14px; padding: 16px; }
+  .bar a { min-height: 48px; display: inline-flex; align-items: center; padding: 0 16px; border-radius: 8px; background: #07140e; color: #eef3ee; text-decoration: none; font-weight: 600; }
+  .grid { display: grid; gap: 16px; }
+  .g2 { grid-template-columns: 1fr 1fr; }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .panel { border-radius: 14px; min-height: 180px; display: grid; place-items: center; padding: 24px; }
+  .panel img { width: min(100%, 360px); }
+  .panel span { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; }
+  .light { background: #f7f4ee; border: 1px solid #e4ddd0; color: #1a241c; }
+  .dark { background: #07140e; color: #eef3ee; }
+  .swatch { background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #e4ddd0; }
+  .chip { height: 96px; }
+  .meta { padding: 12px 14px; }
+  .meta b { display: block; font-family: "Cormorant Garamond", Georgia, serif; font-size: 1.4rem; }
+  .type-row { display: grid; grid-template-columns: 140px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid #e4ddd0; }
+  .btn { min-height: 48px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 6px; text-decoration: none; font-weight: 600; margin: 0 8px 8px 0; }
+  .gold { background: linear-gradient(135deg, #f3dc94, #d9b75f 45%, #c9a145); color: #1a1203; }
+  .ghost { border: 1px solid #07140e; color: #07140e; }
+  .silver { background: linear-gradient(135deg, #f4f6f9, #c3cad6); color: #0d111a; }
+  .card { background: #fff; border: 1px solid #e4ddd0; border-radius: 12px; padding: 18px; }
+  ul { margin: 0; padding-left: 18px; }
+  footer { padding: 28px 0 48px; color: #5c6b60; }
+  @media (max-width: 800px) { .cover, .g2, .g3, .type-row { grid-template-columns: 1fr; } }
+  @media print {
+    .top, .bar { display: none; }
+    body { background: #fff; }
+    .cover, .dark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .chip, .gold, .silver { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<header class="top"><strong>Valorem brand standards</strong><a href="index.html">Back to the prototype</a></header>
+<div class="wrap">
+  <article class="cover">
+    <div>
+      <p class="kicker">Cover</p>
+      <h1>Valorem</h1>
+      <p>Fine jewelry, gold and silver bullion, and live webinars.</p>
+      <p>Prepared by Yavin Digital. Sample operator prototype. October 2026.</p>
+    </div>
+    <img src="assets/img/logo.svg" alt="Valorem wordmark">
+  </article>
+
+  <section>
+    <h2>Download</h2>
+    <div class="bar">
+      <a href="assets/img/logo.svg" download>Wordmark SVG</a>
+      <a href="assets/img/logo.png" download>Logo PNG</a>
+      <a href="assets/img/logo-inverted.png" download>Inverted PNG</a>
+      <a href="assets/img/og-1200x630.png" download>Share image</a>
+      <a href="assets/Valorem-Brand-Standards.pdf" download>Brand standards PDF</a>
+    </div>
+  </section>
+
+  <section>
+    <h2>Logo</h2>
+    <div class="grid g2">
+      <div class="panel dark"><img src="assets/img/logo.svg" alt="Wordmark on deep green"><span>Deep green</span></div>
+      <div class="panel light"><img src="assets/img/logo-on-light.svg" alt="Wordmark on ivory"><span>Ivory</span></div>
+      <div class="panel dark"><img src="assets/img/mark.svg" alt="Diamond mark" style="width:88px"><span>Mark</span></div>
+      <div class="panel light"><img src="assets/img/logo-inverted.png" alt="Inverted wordmark" style="width:min(100%,360px)"><span>Inverted PNG</span></div>
+    </div>
+    <p>Clear space is the width of the diamond on every side. Do not recolor the diamond off gold, stretch the word, or set the light wordmark on ivory.</p>
+  </section>
+
+  <section>
+    <h2>Color</h2>
+    <div class="grid g3">
+      <div class="swatch"><div class="chip" style="background:#07140e"></div><div class="meta"><b>#07140e</b>Background. Deep green.</div></div>
+      <div class="swatch"><div class="chip" style="background:#0c1f16"></div><div class="meta"><b>#0c1f16</b>Surface.</div></div>
+      <div class="swatch"><div class="chip" style="background:#123024"></div><div class="meta"><b>#123024</b>Raised surface.</div></div>
+      <div class="swatch"><div class="chip" style="background:#eef3ee"></div><div class="meta"><b>#eef3ee</b>Text.</div></div>
+      <div class="swatch"><div class="chip" style="background:#c5d1c6"></div><div class="meta"><b>#c5d1c6</b>Muted text.</div></div>
+      <div class="swatch"><div class="chip" style="background:#d9b75f"></div><div class="meta"><b>#d9b75f</b>Gold accent.</div></div>
+      <div class="swatch"><div class="chip" style="background:#c3cad6"></div><div class="meta"><b>#c3cad6</b>Silver.</div></div>
+      <div class="swatch"><div class="chip" style="background:#f08080"></div><div class="meta"><b>#f08080</b>Danger.</div></div>
+      <div class="swatch"><div class="chip" style="background:#1a1203"></div><div class="meta"><b>#1a1203</b>Ink on gold.</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Type</h2>
+    <div class="type-row"><div>Display</div><div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:2.4rem">Cormorant Garamond</div></div>
+    <div class="type-row"><div>Body</div><div>Jost. Body copy stays at 17px or larger. Buttons are at least 48px tall.</div></div>
+    <p class="kicker">Valorem</p>
+    <p style="font-family:'Cormorant Garamond',Georgia,serif;font-size:2rem;margin:0">Fine jewelry, gold and silver bullion, and live webinars.</p>
+  </section>
+
+  <section>
+    <h2>Buttons</h2>
+    <a class="btn gold" href="games.html">Play games</a>
+    <a class="btn silver" href="webinars.html">Reserve a seat</a>
+    <a class="btn ghost" href="how-it-works.html">How it works</a>
+  </section>
+
+  <section>
+    <h2>Voice</h2>
+    <div class="grid g2">
+      <article class="card"><h3>Sound like</h3><ul><li>Calm, specific, and short.</li><li>Name the coin: Valorem or Ips.</li><li>Call sample prices and hosts samples.</li><li>Say a hold lasts 45 seconds.</li></ul></article>
+      <article class="card"><h3>Leave out</h3><ul><li>Emoji.</li><li>Invented licenses, odds promises, or state lists.</li><li>Winner marquees and VIP ranks.</li><li>Mail-in entry instructions.</li></ul></article>
+    </div>
+  </section>
+
+  <section>
+    <h2>Usage</h2>
+    <div class="grid g2">
+      <article class="card"><h3>Do</h3><ul><li>Keep branding in the theme pack and skins.</li><li>Use deep green as the field, gold and silver as metal.</li><li>Plural of the game coin is Valorem.</li><li>Mark placeholders until counsel and the client replace them.</li></ul></article>
+      <article class="card"><h3>Do not</h3><ul><li>Put the operator name inside a game package.</li><li>Show sponsor placements. They are off.</li><li>Advertise free entry in the hero. It stays in the footer.</li><li>Imply this prototype pays anyone.</li></ul></article>
+    </div>
+  </section>
+  <footer>Prepared by Yavin Digital. Valorem (Yavin Digital sample operator) is a placeholder.</footer>
+</div>
+</body>
+</html>

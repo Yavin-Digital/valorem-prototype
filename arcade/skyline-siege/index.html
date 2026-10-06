@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07140e">
+<meta name="robots" content="noindex">
+<title>Skyline Siege</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../valorem-skin.css">
+</head>
+<body data-arcade="play">
+<main id="app">
+  <div id="game-wrap">
+    <canvas id="screen" width="320" height="180" role="img" aria-label="Skyline Siege game screen. Use the keyboard or touch controls to play."></canvas>
+    <div id="hud-buttons">
+      <button type="button" class="hbtn auto-toggle" id="btn-auto-hud" aria-pressed="false" title="Auto-fire on/off">AUTO OFF</button>
+      <button type="button" class="hbtn icon" id="btn-sound" aria-pressed="false" aria-label="Sound is off. Turn sound on" title="Sound on/off (M)"><svg viewBox="0 0 26 26" aria-hidden="true"><path d="M3 9h5l6-5v18l-6-5H3z" fill="#FCFCFC"/><g class="off" stroke="#FC7460" stroke-width="3"><path d="M17 9l7 8M24 9l-7 8"/></g><g class="on" stroke="#58F898" stroke-width="2.5" fill="none"><path d="M17 9c2 2 2 6 0 8M20 6c4 4 4 10 0 14"/></g></svg></button>
+      <button type="button" class="hbtn icon" id="btn-pause" aria-label="Pause and options" aria-expanded="false" title="Pause (P or Esc)"><svg viewBox="0 0 26 26" aria-hidden="true"><rect x="6" y="5" width="5" height="16" fill="#FCFCFC"/><rect x="15" y="5" width="5" height="16" fill="#FCFCFC"/></svg></button>
+    </div>
+    <div id="touch-ui" aria-hidden="true">
+      <div id="stick" class="ctrl"><div id="stick-base"></div><div id="stick-knob"></div></div>
+      <div id="tbuttons" class="ctrl">
+        <div class="tbtn ctrl" data-act="b">JUMP</div>
+        <div class="tbtn ctrl" data-act="a">FIRE</div>
+        <div class="tbtn ctrl" data-act="c">BANG</div>
+      </div>
+      <div class="tauto ctrl auto-toggle" id="btn-auto-touch" role="button" aria-pressed="false">AUTO OFF</div>
+    </div>
+    <div id="pause-menu" class="overlay-menu" hidden role="dialog" aria-modal="true" aria-labelledby="pause-title">
+      <div class="panel">
+        <h2 id="pause-title">PAUSED</h2>
+        <div id="pause-list"></div>
+        <div id="help-panel" hidden>
+          <dl>
+            <dt>Run / aim</dt><dd>Arrows / WASD or the left stick. Aim in 8 directions</dd>
+            <dt>Crouch / prone</dt><dd>Hold Down to crouch; keep holding to go prone</dd>
+            <dt>Fire</dt><dd>J or Z, FIRE button. Auto-fire keeps shooting for you</dd>
+            <dt>Jump</dt><dd>K, X or Space, JUMP button. Down + Jump drops through platforms</dd>
+            <dt>Flash-bang</dt><dd>L or C, BANG button. Stuns the screen, 2 per life</dd>
+            <dt>Weapons</dt><dd>Shoot supply drones: S spread, R rapid, L laser, B bounce</dd>
+            <dt>Pause</dt><dd>P or Esc, or the II button. M toggles sound</dd>
+          </dl>
+          <button type="button" class="menu-btn" id="help-close">Close controls</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <span class="keys">Move/Aim: Arrows/WASD &middot; Fire: J/Z &middot; Jump: K/X &middot; Flash-bang: L/C &middot; Pause: P/Esc</span>
+    <a class="back-link" href="../../games.html" data-back-link>Back to arcade</a>
+    <span class="free">Free to play. No purchase and no wager.</span>
+  </footer>
+</main>
+<div id="rotate" role="alert">
+  <svg viewBox="0 0 120 120" aria-hidden="true"><g class="phone"><rect x="38" y="14" width="44" height="92" rx="6" fill="none" stroke="#FCFCFC" stroke-width="6"/><rect x="54" y="94" width="12" height="4" fill="#FCFCFC"/></g></svg>
+  <p>Rotate your phone to landscape to play Skyline Siege.</p>
+  <small>On a desktop, make the window wider than it is tall.</small>
+</div>
+<script src="engine.js"></script>
+<script src="art.js"></script>
+<script src="bg.js"></script>
+<script src="stages.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
