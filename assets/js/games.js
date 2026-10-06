@@ -31,8 +31,28 @@
   var historyEl = document.querySelector(".shell-history ul");
   var step = 0;
 
-  function showResult(text) {
+  function syncPlayBar() {
+    var bar = document.querySelector(".shell-controls");
+    if (!bar) return;
+    var h = Math.ceil(bar.getBoundingClientRect().height);
+    if (h > 0) document.documentElement.style.setProperty("--play-bar", h + "px");
+  }
+  function showResult(text, scroll) {
     if (resultEl) resultEl.innerHTML = "<p class='stage-label'>Result</p><p>" + text + "</p>";
+    var barLine = document.getElementById("bar-result");
+    if (barLine) barLine.textContent = text;
+    syncPlayBar();
+    if (scroll && resultEl) {
+      var bar = document.querySelector(".shell-controls");
+      var barTop = bar && getComputedStyle(bar).position === "fixed" ? bar.getBoundingClientRect().top : window.innerHeight;
+      var rect = resultEl.getBoundingClientRect();
+      var header = document.getElementById("chrome-top");
+      var headerBottom = header ? header.getBoundingClientRect().bottom : 0;
+      if (rect.bottom > barTop - 8 || rect.top < headerBottom) {
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        resultEl.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+      }
+    }
     if (historyEl) {
       if (!historyEl.dataset.live) { historyEl.innerHTML = ""; historyEl.dataset.live = "1"; }
       var li = document.createElement("li");
@@ -112,13 +132,17 @@
   var kenoPicked = [];
   function renderKeno(data) {
     var stage = document.querySelector("[data-stage]");
+    var draws = data.draw || [];
+    var hits = data.hits || [];
     var cells = "";
     for (var n = 1; n <= 80; n++) {
-      var picked = kenoPicked.indexOf(n) >= 0 || data.picks.indexOf(n) >= 0;
-      var cls = "spot" + (picked ? " pick" : "") + (data.draw.indexOf(n) >= 0 ? " draw" : "") + (data.hits.indexOf(n) >= 0 ? " hit" : "");
-      cells += '<button class="' + cls + '" type="button" data-n="' + n + '" aria-pressed="' + (picked ? "true" : "false") + '" aria-label="Spot ' + n + '">' + n + "</button>";
+      var mine = kenoPicked.indexOf(n) >= 0;
+      var drawn = draws.indexOf(n) >= 0;
+      var hit = mine && hits.indexOf(n) >= 0;
+      var cls = "spot" + (mine ? " pick" : "") + (drawn ? " draw" : "") + (hit ? " hit" : "");
+      cells += '<button class="' + cls + '" type="button" data-n="' + n + '" aria-pressed="' + (mine ? "true" : "false") + '" aria-label="Spot ' + n + '">' + n + "</button>";
     }
-    stage.innerHTML = '<p class="stage-label">Stage · ' + skin.displayName + '</p><div class="keno-grid">' + cells + "</div>";
+    stage.innerHTML = '<p class="stage-label">Stage · ' + skin.displayName + '</p><p class="keno-tools"><button class="btn btn-ghost" type="button" id="quick-pick">Quick pick</button></p><div class="keno-grid">' + cells + "</div>";
     stage.querySelector(".keno-grid").onclick = function (e) {
       var btn = e.target.closest("[data-n]");
       if (!btn) return;
@@ -126,6 +150,11 @@
       var at = kenoPicked.indexOf(num);
       if (at >= 0) kenoPicked.splice(at, 1);
       else if (kenoPicked.length < 10) kenoPicked.push(num);
+      renderKeno(data);
+    };
+    var quick = document.getElementById("quick-pick");
+    if (quick) quick.onclick = function () {
+      kenoPicked = [3, 14, 22, 41, 60].slice();
       renderKeno(data);
     };
   }
@@ -192,9 +221,10 @@
   var controls = document.querySelector(".shell-controls");
   if (spec.arcade) {
     renderArcade();
-    if (controls) controls.innerHTML = "<p class='stage-label'>Controls</p><p>" + (skin.copy.intro || "") + "</p><p class='muted'>" + (skin.copy.free || "") + "</p>";
+    if (controls) controls.innerHTML = "<p class='stage-label'>Controls</p><p>" + (skin.copy.intro || "") + "</p><p class='bar-result' id='bar-result' aria-live='polite'></p><p class='muted'>" + (skin.copy.free || "") + "</p>";
     showResult("Free play stays inside the stage. Nothing is added to the wallet.");
     document.body.classList.add("game-ready");
+    syncPlayBar();
     return;
   }
 
@@ -215,24 +245,25 @@
       painter(data, true);
       setTimeout(function () {
         painter(data, false);
-        showResult(data.text);
+        showResult(data.text, true);
         release(btn);
       }, 700);
     } else {
       painter(data, false);
-      showResult(data.text);
+      showResult(data.text, true);
       release(btn);
     }
   }
 
   if (controls) {
     var intro = skin.copy.intro || skin.copy["aim-note"] || skin.copy["empty-board"] || "";
+    var barResult = '<p class="bar-result" id="bar-result" aria-live="polite"></p>';
     if (!signed) {
-      controls.innerHTML = '<p class="stage-label">Controls</p><p>' + intro + '</p><a class="btn btn-gold" href="' + nextUrl + '">Sign in to play</a><p class="fine">' + spec.rtp + "</p>";
+      controls.innerHTML = '<p class="stage-label">Controls</p><p>' + intro + '</p><a class="btn btn-gold" href="' + nextUrl + '">Sign in to play</a>' + barResult + '<p class="fine">' + spec.rtp + "</p>";
     } else if (low) {
-      controls.innerHTML = '<p class="stage-label">Controls</p><p>' + intro + '</p><button class="btn btn-gold" type="button" disabled>Not enough ' + V.goldName + '</button><p class="note">Not enough ' + V.goldName + (id === "vault-stack" ? " to start a board. The live game starts at 25." : " to play a sample round.") + " The sample wallet is not changed.</p><p class='fine'>" + spec.rtp + "</p>";
+      controls.innerHTML = '<p class="stage-label">Controls</p><p>' + intro + '</p><button class="btn btn-gold" type="button" disabled>Not enough ' + V.goldName + '</button><p class="note">Not enough ' + V.goldName + (id === "vault-stack" ? " to start a board. The live game starts at 25." : " to play a sample round.") + " The sample wallet is not changed.</p>" + barResult + "<p class='fine'>" + spec.rtp + "</p>";
     } else {
-      controls.innerHTML = '<p class="stage-label">Controls</p><p>' + intro + '</p><button class="btn btn-gold" type="button" id="play-sample">Play sample round</button><p class="fine">' + spec.rtp + "</p>";
+      controls.innerHTML = '<p class="stage-label">Controls</p><p>' + intro + '</p><button class="btn btn-gold" type="button" id="play-sample">Play sample round</button>' + barResult + '<p class="fine">' + spec.rtp + "</p>";
       document.getElementById("play-sample").onclick = function () {
         var now = Date.now();
         var btn = document.getElementById("play-sample");
@@ -259,4 +290,7 @@
     historyEl.appendChild(li);
   }
   document.body.classList.add("game-ready");
+  syncPlayBar();
+  if (window.ResizeObserver && controls) new ResizeObserver(syncPlayBar).observe(controls);
+  window.addEventListener("resize", syncPlayBar);
 })();

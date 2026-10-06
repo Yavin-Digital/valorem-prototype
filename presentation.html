@@ -9,7 +9,8 @@
 <link rel="stylesheet" href="assets/css/tokens.css">
 <style>
   html, body { height: 100%; overflow: hidden; background: #04110c; font-family: var(--font-body); }
-  .deck { height: 100svh; position: relative; }
+  [hidden] { display: none !important; }
+  .deck { height: 100svh; position: relative; overflow: hidden; }
   .slide { position: absolute; inset: 0; display: none; background: #07140e; color: #eef3ee; overflow-y: auto; overscroll-behavior: contain; }
   .slide.on { display: block; }
   .inner { width: min(1000px, calc(100% - 48px)); margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; padding: clamp(16px, 5vh, 48px) 0 calc(96px + env(safe-area-inset-bottom)); }
@@ -28,6 +29,11 @@
   @media (max-width: 720px) { .cols { grid-template-columns: 1fr; } .inner { width: calc(100% - 32px); } }
   @media (max-height: 480px) { h2 { font-size: 1.75rem; } .inner { padding-top: 16px; } }
   @media (max-width: 480px) { #full { display: none; } .bar a { padding: 0 10px; } }
+  @media (max-width: 360px) {
+    .bar { gap: 4px; padding-inline: 8px; }
+    button, .bar a { padding: 0 10px; }
+    #count { padding: 0 4px; }
+  }
 </style>
 </head>
 <body>

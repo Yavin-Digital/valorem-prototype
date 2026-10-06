@@ -99,7 +99,11 @@
   function save() {
     localStorage.setItem(KEY, JSON.stringify(state));
     var badge = $(".cart-count");
-    if (badge) badge.textContent = String(cartCount());
+    if (badge) {
+      var n = cartCount();
+      badge.textContent = n ? String(n) : "";
+      badge.hidden = n === 0;
+    }
     var cartLink = $(".cart-link");
     if (cartLink) cartLink.setAttribute("aria-label", "Cart, " + cartCount() + (cartCount() === 1 ? " item" : " items"));
   }
@@ -171,7 +175,9 @@
       var cur = item[2] === page ? ' aria-current="page"' : "";
       return '<a href="' + item[1] + '"' + cur + ">" + item[0] + "</a>";
     }).join("");
-    var cartLink = '<a class="tool-link cart-link" href="cart.html" aria-label="Cart, ' + cartCount() + (cartCount() === 1 ? " item" : " items") + '"><span class="cart-word">Cart</span><span class="cart-count">' + cartCount() + "</span></a>";
+    var count = cartCount();
+    var cartSvg = '<svg class="cart-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6 7h15l-1.6 8.2a2 2 0 0 1-2 1.6H9.2a2 2 0 0 1-2-1.5L5 4H3"/><circle cx="9" cy="20" r="1.3" fill="currentColor" stroke="none"/><circle cx="18" cy="20" r="1.3" fill="currentColor" stroke="none"/></svg>';
+    var cartLink = '<a class="tool-link cart-link" href="cart.html" aria-label="Cart, ' + count + (count === 1 ? " item" : " items") + '">' + cartSvg + '<span class="cart-count"' + (count ? "" : " hidden") + ">" + (count ? count : "") + "</span></a>";
     var tool = state.signedIn
       ? '<a class="bal-link" href="wallet.html"><span class="bal-full"><small>' + GOLD + '</small>' + num(state.gold) + '</span><span class="bal-full"><small>' + IPS + '</small>' + num(state.ips) + '</span><span class="bal-short">Wallet</span></a>'
       : '<a class="tool-link" href="login.html">Sign in</a>';

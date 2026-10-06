@@ -1,5 +1,6 @@
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overflow-x: clip; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overflow-x: clip; scroll-padding-top: calc(var(--hdr) + env(safe-area-inset-top) + 12px); }
+[hidden] { display: none !important; }
 body {
   margin: 0;
   min-height: 100svh;
@@ -72,6 +73,7 @@ p { margin: 0 0 1em; }
 .primary a, .menu-primary a, .screen-link, .tool-link, .nav-toggle {
   display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 12px;
   text-decoration: none; color: var(--muted); border-radius: 8px; background: none; border: 0; cursor: pointer;
+  white-space: nowrap;
 }
 .primary a[aria-current="page"], .menu-primary a[aria-current="page"], .screen-link[aria-current="page"] { color: var(--text); }
 .primary a:hover, .menu-primary a:hover, .screen-link:hover, .tool-link:hover { color: var(--text); }
@@ -80,7 +82,13 @@ p { margin: 0 0 1em; }
 .bal-short { display: none; }
 .bal-link small { display: block; font-weight: 500; color: var(--faint); font-size: 1rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .cart-link { gap: 6px; }
-.cart-count { min-width: 1.5rem; text-align: center; font-variant-numeric: tabular-nums; }
+.cart-icon { width: 22px; height: 22px; }
+.cart-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px;
+  background: var(--gold); color: var(--gold-ink); font-size: 1rem; font-weight: 600;
+  font-variant-numeric: tabular-nums; line-height: 1;
+}
 .nav-toggle { border: 1px solid var(--line-strong); }
 .menu-panel {
   border-top: 1px solid var(--line);
@@ -150,9 +158,10 @@ p { margin: 0 0 1em; }
 
 .field { display: grid; gap: 8px; margin-bottom: 16px; }
 .field label { font-weight: 500; }
-.input, .select {
+.input, .select, textarea {
   width: 100%; min-height: 52px; padding: 12px 14px; border-radius: 6px;
   background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text); font-size: 1rem;
+  scroll-margin-block: 16px;
 }
 .input:focus, .select:focus { outline: none; border-color: var(--silver); box-shadow: 0 0 0 3px rgba(195,202,214,.2); }
 .check { display: flex; gap: 12px; align-items: flex-start; min-height: 48px; color: var(--muted); }
@@ -183,7 +192,8 @@ th { color: var(--faint); font-size: 1rem; letter-spacing: 0.12em; text-transfor
 .seat.mine { background: var(--seat-mine-bg); color: var(--seat-mine-text); border-color: transparent; }
 .seat.taken { background: var(--seat-taken-bg); color: var(--seat-taken-text); cursor: not-allowed; }
 .seat.confirmed { background: var(--seat-confirmed); color: var(--gold-ink); border-color: transparent; cursor: default; }
-.hold-clock { font-variant-numeric: tabular-nums; color: var(--gold); font-weight: 600; margin: 0; }
+.hold-clock { font-variant-numeric: tabular-nums; color: var(--gold); font-weight: 600; margin: 0; white-space: nowrap; }
+.hold-bar .btn { white-space: nowrap; flex: 0 0 auto; }
 .hold-bar {
   position: sticky;
   bottom: 0;
@@ -243,19 +253,25 @@ th { color: var(--faint); font-size: 1rem; letter-spacing: 0.12em; text-transfor
 }
 @media (max-width: 700px) {
   .g2, .g3, .g4, .coins, .shop-split, .split { grid-template-columns: minmax(0, 1fr); }
-  .split > aside { order: -1; }
+  #checkout .split > aside { order: -1; }
+  .toast-host { left: 16px; right: 16px; width: auto; bottom: auto; top: calc(var(--hdr) + env(safe-area-inset-top) + 8px); }
 }
 @media (max-width: 480px) {
   .cart-line { grid-template-columns: 72px 1fr; }
   .cart-line img { width: 72px; height: 72px; }
   .cart-line .qty { grid-column: 2; }
 }
-@media (max-width: 400px) {
-  .cart-word {
-    position: absolute; width: 1px; height: 1px; overflow: hidden;
-    clip: rect(0, 0, 0, 0); white-space: nowrap;
-  }
-  .cart-link { min-width: 48px; padding-inline: 8px; }
+@media (max-width: 360px) {
+  .brand { gap: 6px; }
+  .brand span { font-size: 1.2rem; }
+  .header-tools { gap: 4px; }
+  .header-tools .tool-link, .header-tools .nav-toggle { padding-inline: 8px; }
+}
+@media (max-height: 500px) {
+  :root { --hdr: 56px; }
+  #chrome-top { position: relative; }
+  .header-bar { min-height: 56px; }
+  .hold-bar { top: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
