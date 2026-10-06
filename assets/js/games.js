@@ -34,7 +34,11 @@
   var userMovedSincePlay = false;
   var programmaticScroll = false;
   function noteUserMove() { userMovedSincePlay = true; }
-  window.addEventListener("touchstart", noteUserMove, { passive: true });
+  function noteTouch(e) {
+    if (e.target && e.target.closest && e.target.closest(".shell-controls")) return;
+    userMovedSincePlay = true;
+  }
+  window.addEventListener("touchstart", noteTouch, { passive: true });
   window.addEventListener("wheel", noteUserMove, { passive: true });
   window.addEventListener("scroll", function () {
     if (!programmaticScroll) userMovedSincePlay = true;
@@ -305,7 +309,7 @@
       var color = num === 0 ? "#0d3b28" : REDS[num] ? "#9d2a32" : "#123024";
       var tx = (160 + 112 * Math.cos(mid)).toFixed(2);
       var ty = (160 + 112 * Math.sin(mid)).toFixed(2);
-      return '<path d="M' + pt(a0, R) + " A" + R + " " + R + " 0 0 1 " + pt(a1, R) + " L" + pt(a1, r) + " A" + r + " " + r + " 0 0 0 " + pt(a0, r) + ' Z" fill="' + color + '"/><text x="' + tx + '" y="' + ty + '" fill="#f4f6f4" font-size="11" font-weight="700" text-anchor="middle" dominant-baseline="middle" transform="rotate(' + ((mid * 180 / Math.PI) + 90).toFixed(2) + " " + tx + " " + ty + ')">' + num + "</text>";
+      return '<path d="M' + pt(a0, R) + " A" + R + " " + R + " 0 0 1 " + pt(a1, R) + " L" + pt(a1, r) + " A" + r + " " + r + " 0 0 0 " + pt(a0, r) + ' Z" fill="' + color + '"/><text aria-hidden="true" x="' + tx + '" y="' + ty + '" fill="#f4f6f4" font-size="14" font-weight="700" text-anchor="middle" dominant-baseline="middle" transform="rotate(' + ((mid * 180 / Math.PI) + 90).toFixed(2) + " " + tx + " " + ty + ')">' + num + "</text>";
     }).join("");
     var pocket = data.pocket ? parseInt(data.pocket, 10) : 0;
     var idx = WHEEL.indexOf(pocket);
