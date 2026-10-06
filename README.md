@@ -24,7 +24,7 @@ Coin names, colors, type, the tagline, and the seat-hold sentence live in `theme
 - Arcade games are three separate tiles, free play, nothing paid.
 - Seats are numbered only, with a 45-second hold, then confirm.
 - Free entry is a web form for a signed-in player. Amount and caps are set by the operator. No mail-in.
-- No VIP ranks, live draw room, winner marquee, host console, admin, or email templates.
+- The home includes a next-webinar card and a sample winners strip. No VIP ranks, live draw room, host console, admin, or email templates.
 
 ## Defaults Mike can still change
 

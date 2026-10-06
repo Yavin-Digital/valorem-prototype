@@ -84,7 +84,26 @@
   ];
 
   function blank() {
-    return { signedIn: false, name: "", email: "", gold: 0, ips: 0, cart: [], ledger: [], holds: {}, confirmed: {}, orders: [], requests: [], reminder: 0, ipsOnOrder: 0, receipt: null };
+    var now = Date.now();
+    return {
+      signedIn: true,
+      name: "Sample player",
+      email: "player@valorem.example",
+      gold: 25000,
+      ips: 80,
+      cart: [],
+      ledger: [
+        { t: now, coin: "GOLD", amt: 25000, note: "Sample opening balance" },
+        { t: now, coin: "SWEEP", amt: 80, note: "Sample opening balance" }
+      ],
+      holds: {},
+      confirmed: {},
+      orders: [],
+      requests: [],
+      reminder: 0,
+      ipsOnOrder: 0,
+      receipt: null
+    };
   }
   function load() {
     try {
@@ -112,6 +131,103 @@
   function money(n) { return "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
   function num(n) { return Number(n).toLocaleString("en-US"); }
   function coin(kind, amount) { return num(amount) + " " + (kind === "GOLD" ? GOLD : IPS); }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function ic(name, size) {
+    return window.ValoremArt ? ValoremArt.icon(name, size || 18) : "";
+  }
+  function coinSvg(kind, size) {
+    if (!window.ValoremArt) return "";
+    return ValoremArt.coin(kind === "GOLD" ? "GOLD" : "SWEEP", size || 22);
+  }
+  function shortBal(n) {
+    n = Math.round(Number(n) || 0);
+    if (n >= 1000000) return (n / 1000000).toFixed(n >= 10000000 ? 0 : 1).replace(/\.0$/, "") + "M";
+    if (n >= 10000) return (n / 1000).toFixed(n >= 100000 ? 0 : 1).replace(/\.0$/, "") + "K";
+    return num(n);
+  }
+  function initials(name) {
+    var parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return "SP";
+  }
+  function ctInstant(y, m, d, hour) {
+    var guess = Date.UTC(y, m - 1, d, hour + 6, 0, 0);
+    function parts(ms) {
+      var map = {};
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Chicago",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23"
+      }).formatToParts(new Date(ms)).forEach(function (p) {
+        if (p.type !== "literal") map[p.type] = p.value;
+      });
+      return map;
+    }
+    var k;
+    for (k = 0; k < 4; k++) {
+      var p = parts(guess);
+      var got = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+      guess += Date.UTC(y, m - 1, d, hour, 0) - got;
+    }
+    return guess;
+  }
+  function nextDrawAt(now) {
+    now = now || Date.now();
+    var bits = {};
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Chicago",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).formatToParts(new Date(now)).forEach(function (p) {
+      if (p.type !== "literal") bits[p.type] = +p.value;
+    });
+    var i;
+    for (i = 0; i < 10; i++) {
+      var cursor = new Date(Date.UTC(bits.year, bits.month - 1, bits.day + i));
+      var start = ctInstant(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, cursor.getUTCDate(), 20);
+      var wd = new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", weekday: "short" }).format(new Date(start));
+      if (wd === "Wed" && start > now + 60000) return start;
+    }
+    return now + 26 * 3600000;
+  }
+  function drawLabel(ts) {
+    var map = {};
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Chicago",
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23"
+    }).formatToParts(new Date(ts)).forEach(function (p) {
+      if (p.type !== "literal") map[p.type] = p.value;
+    });
+    var hour = Number(map.hour);
+    var suffix = hour >= 12 ? "PM" : "AM";
+    var h12 = hour % 12;
+    if (h12 === 0) h12 = 12;
+    return "Draw starts " + map.weekday + ", " + map.month + " " + map.day + ", " + h12 + ":" + map.minute + " " + suffix + " CT";
+  }
+  function cdHTML(target, small) {
+    var ms = Math.max(0, target - Date.now());
+    var s = Math.floor(ms / 1000);
+    var q = [Math.floor(s / 86400), Math.floor((s % 86400) / 3600), Math.floor((s % 3600) / 60), s % 60];
+    var lab = small ? ["Days", "Hrs", "Min", "Sec"] : ["Days", "Hours", "Minutes", "Seconds"];
+    return q.map(function (v, k) {
+      return '<div class="cd-b"><b>' + (v < 10 ? "0" : "") + v + "</b><small>" + lab[k] + "</small></div>";
+    }).join("");
+  }
   function qs(name) { return new URLSearchParams(location.search).get(name); }
   function product(sku) { return products.filter(function (p) { return p.sku === sku; })[0]; }
   function webinar(slug) { return webinars.filter(function (w) { return w.slug === slug; })[0]; }
@@ -161,14 +277,16 @@
     save();
   }
 
+  function mark() {
+    return window.ValoremArt ? ValoremArt.logo(38) : '<img src="assets/img/mark.svg" alt="" width="36" height="36">';
+  }
   function headerHTML() {
     var page = document.body.getAttribute("data-nav") || "";
     var primary = [
-      ["Home", "index.html", "home"],
       ["Games", "games.html", "games"],
       ["Webinars", "webinars.html", "webinars"],
       ["Shop", "shop.html", "shop"],
-      ["Wallet", "wallet.html", "wallet"],
+      ["Free entry", "amoe.html", "free"],
       ["How it works", "how-it-works.html", "how"]
     ];
     var links = primary.map(function (item) {
@@ -176,43 +294,68 @@
       return '<a href="' + item[1] + '"' + cur + ">" + item[0] + "</a>";
     }).join("");
     var count = cartCount();
-    var cartSvg = '<svg class="cart-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6 7h15l-1.6 8.2a2 2 0 0 1-2 1.6H9.2a2 2 0 0 1-2-1.5L5 4H3"/><circle cx="9" cy="20" r="1.3" fill="currentColor" stroke="none"/><circle cx="18" cy="20" r="1.3" fill="currentColor" stroke="none"/></svg>';
-    var cartLink = '<a class="tool-link cart-link" href="cart.html" aria-label="Cart, ' + count + (count === 1 ? " item" : " items") + '">' + cartSvg + '<span class="cart-count"' + (count ? "" : " hidden") + ">" + (count ? count : "") + "</span></a>";
-    var tool = state.signedIn
-      ? '<a class="bal-link" href="wallet.html"><span class="bal-full"><small>' + GOLD + '</small>' + num(state.gold) + '</span><span class="bal-full"><small>' + IPS + '</small>' + num(state.ips) + '</span><span class="bal-short">Wallet</span></a>'
-      : '<a class="tool-link" href="login.html">Sign in</a>';
+    var cartLink = '<a class="icon-btn cart-link" href="cart.html" aria-label="Cart, ' + count + (count === 1 ? " item" : " items") + '">' + ic("bag", 20) + '<span class="cart-count"' + (count ? "" : " hidden") + ">" + (count ? count : "") + "</span></a>";
+    var tools = state.signedIn
+      ? '<a class="wallet-pill" href="wallet.html" aria-label="Wallet, ' + num(state.gold) + " " + GOLD + ", " + num(state.ips) + " " + IPS + '">'
+        + '<span class="wp">' + coinSvg("GOLD", 22) + '<span class="v">' + shortBal(state.gold) + "</span></span>"
+        + '<span class="wp">' + coinSvg("SWEEP", 22) + '<span class="v">' + num(state.ips) + "</span></span>"
+        + '<span class="wp-add" aria-hidden="true">' + ic("plus", 18) + "</span></a>"
+        + cartLink
+        + '<a class="avatar" href="account.html" aria-label="Account">' + esc(initials(state.name)) + "</a>"
+      : cartLink + '<a class="btn btn-ghost btn-sm" href="login.html">Sign in</a><a class="btn btn-gold btn-sm" href="register.html">Join</a>';
     var screenLinks = screens.map(function (s) {
       return '<a class="screen-link" href="' + s[1] + '">' + s[0] + "</a>";
     }).join("");
     var gameLinks = games.map(function (g) {
       return '<a class="screen-link" href="' + g.href + '">' + skin(g.id).displayName + "</a>";
     }).join("");
+    var explore = [
+      ["index.html", "Home", "home", "home"],
+      ["games.html", "Games", "dice", "games"],
+      ["webinars.html", "Webinars", "video", "webinars"],
+      ["shop.html", "Shop", "bag", "shop"],
+      ["amoe.html", "Free entry", "gift", "free"],
+      ["how-it-works.html", "How it works", "help", "how"],
+      ["wallet.html", "Wallet", "wallet", "wallet"],
+      ["account.html", "Account", "user", "account"]
+    ].map(function (n) {
+      return '<a href="' + n[0] + '"' + (page === n[3] ? ' aria-current="page"' : "") + ">" + ic(n[2], 20) + n[1] + "</a>";
+    }).join("");
+    var sheetBal = state.signedIn
+      ? '<div class="sheet-bal"><a href="wallet.html">' + coinSvg("GOLD", 28) + "<b>" + num(state.gold) + "</b><small>" + GOLD + '</small></a><a href="wallet.html">' + coinSvg("SWEEP", 28) + "<b>" + num(state.ips) + "</b><small>" + IPS + "</small></a></div>"
+      : "";
     return ''
       + '<a class="skip" href="#main">Skip to content</a>'
+      + '<div class="npn"><div class="wrap"><b>No purchase necessary to play or win.</b><a href="amoe.html">Get free ' + IPS + " " + ic("arrow", 15) + "</a></div></div>"
       + '<header class="site-header"><div class="wrap header-bar">'
-      + '<a class="brand" href="index.html"><img src="assets/img/mark.svg" alt="" width="36" height="36"><span>Valorem</span></a>'
+      + '<a class="brand" href="index.html" aria-label="Valorem home">' + mark() + '<span class="brand-name">Valorem</span></a>'
       + '<nav class="primary" aria-label="Primary">' + links + "</nav>"
-      + '<div class="header-tools">' + cartLink + tool
-      + '<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu-panel">Menu</button>'
-      + "</div></div>"
-      + '<div id="menu-panel" class="menu-panel" hidden><div class="wrap">'
-      + '<nav class="menu-primary" aria-label="Primary">' + links + "</nav>"
-      + '<p class="menu-label">All screens</p><nav class="screen-nav" aria-label="All screens">' + screenLinks + "</nav>"
-      + '<p class="menu-label">Game shells</p><nav class="screen-nav" aria-label="Game shells">' + gameLinks + "</nav>"
-      + "</div></div></header>";
+      + '<div class="header-tools">' + tools
+      + '<button class="icon-btn nav-toggle" type="button" aria-expanded="false" aria-controls="menu-panel" aria-label="Open menu">' + ic("menu", 22) + "</button>"
+      + "</div></div></header>"
+      + '<div id="menu-panel" class="sheet" hidden>'
+      + '<div class="sheet-scrim" data-close></div>'
+      + '<div class="sheet-panel" role="dialog" aria-modal="true" aria-label="Menu">'
+      + '<div class="sheet-head"><a class="brand" href="index.html">' + mark() + '<span class="brand-name">Valorem</span></a><button class="icon-btn" type="button" data-close aria-label="Close menu">' + ic("x", 20) + "</button></div>"
+      + sheetBal
+      + "<h4>Explore</h4><nav>" + explore + "</nav>"
+      + '<h4>All screens</h4><nav class="screen-nav" aria-label="All screens">' + screenLinks + "</nav>"
+      + '<h4>Game shells</h4><nav class="screen-nav" aria-label="Game shells">' + gameLinks + "</nav>"
+      + "</div></div>";
   }
 
   function footerHTML() {
+    var brand = '<a class="brand" href="index.html">' + (window.ValoremArt ? ValoremArt.logo(36) : '<img src="assets/img/mark.svg" alt="" width="28" height="28">') + '<span class="brand-name">Valorem</span></a>';
     return ''
-      + '<footer class="site-footer"><div class="wrap footer-grid">'
-      + '<div><a class="brand" href="index.html"><img src="assets/img/mark.svg" alt="" width="28" height="28"><span>Valorem</span></a>'
-      + "<p>" + PACK.copy.tagline + "</p>"
-      + '<p class="fine">Sample operator prototype. ' + PACK.legalEntity + ". Support " + PACK.supportEmail + " is a placeholder.</p></div>"
-      + '<nav class="footer-links" aria-label="Legal">'
-      + '<a href="terms.html">Terms</a><a href="rules.html">Sweeps rules</a><a href="privacy.html">Privacy</a>'
-      + '<a href="responsible-play.html">Responsible play</a><a href="amoe.html">Free entry</a>'
-      + "</nav>"
-      + '<p class="fine">No purchase necessary. Free entry is a web form for signed-in players. The amount and any caps are set by the operator. ' + GOLD + " has no cash value. " + IPS + " are not sold.</p>"
+      + '<footer class="site-footer"><div class="wrap">'
+      + '<div class="footer-grid">'
+      + '<div class="footer-brand">' + brand + "<p>" + PACK.copy.tagline + "</p></div>"
+      + '<nav aria-label="Play"><h3>Play</h3><a href="games.html">Games</a><a href="wallet.html">Wallet</a></nav>'
+      + '<nav aria-label="Webinars"><h3>Webinars</h3><a href="webinars.html">Upcoming</a><a href="webinar.html?e=silver-100oz-pair">Next draw</a><a href="amoe.html">Free entry</a></nav>'
+      + '<nav aria-label="Account"><h3>Account</h3><a href="account.html">Account</a><a href="login.html">Sign in</a><a href="how-it-works.html">How it works</a></nav>'
+      + '<nav aria-label="Sample terms"><h3>Sample terms</h3><a href="rules.html">Sweeps rules</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a><a href="responsible-play.html">Responsible play</a></nav>'
+      + "</div>"
+      + '<p class="fine">No purchase necessary. Free entry is a web form for signed-in players. The amount and any caps are set by the operator. ' + GOLD + " has no cash value. " + IPS + " are not sold. Sample operator prototype. " + PACK.legalEntity + ". Support " + PACK.supportEmail + " is a placeholder.</p>"
       + "</div></footer>";
   }
 
@@ -226,23 +369,30 @@
       if (btn && panel) {
         function setMenu(open) {
           btn.setAttribute("aria-expanded", open ? "true" : "false");
+          btn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
           panel.hidden = !open;
+          document.documentElement.classList.toggle("menu-open", open);
         }
         btn.addEventListener("click", function () {
-          setMenu(btn.getAttribute("aria-expanded") !== "true");
+          var open = btn.getAttribute("aria-expanded") !== "true";
+          setMenu(open);
+          if (open) {
+            var closeBtn = panel.querySelector(".sheet-panel [data-close]");
+            if (closeBtn) closeBtn.focus();
+          }
         });
         panel.addEventListener("click", function (e) {
           if (e.target.closest("a")) setMenu(false);
+          else if (e.target.closest("[data-close]")) {
+            setMenu(false);
+            btn.focus();
+          }
         });
         document.addEventListener("keydown", function (e) {
           if (e.key === "Escape" && btn.getAttribute("aria-expanded") === "true") {
             setMenu(false);
             btn.focus();
           }
-        });
-        document.addEventListener("click", function (e) {
-          if (panel.hidden) return;
-          if (!top.contains(e.target)) setMenu(false);
         });
       }
     }
@@ -271,10 +421,82 @@
   }
 
   function paintHome() {
-    var w = $("#home-webinars");
-    var g = $("#home-games");
-    if (w) w.innerHTML = webinars.filter(function (x) { return x.state === "open"; }).map(webinarCard).join("");
-    if (g) g.innerHTML = games.slice(0, 4).map(gameTile).join("");
+    document.querySelectorAll("[data-ic]").forEach(function (el) {
+      if (el.getAttribute("data-ic-done")) return;
+      el.setAttribute("data-ic-done", "1");
+      el.insertAdjacentHTML("afterbegin", ic(el.getAttribute("data-ic"), 18));
+    });
+    var trust = $("#hero-trust");
+    if (trust && !trust.getAttribute("data-ready")) {
+      trust.setAttribute("data-ready", "1");
+      trust.innerHTML = "<span>" + ic("gift", 18) + "Free entry every day</span>"
+        + "<span>" + ic("shield", 18) + "Numbered seats, 45-second hold</span>"
+        + '<span><a class="btn-link" href="how-it-works.html">New here? How it works</a></span>';
+    }
+    var feat = $("#featured");
+    if (feat && !feat.getAttribute("data-ready")) {
+      feat.setAttribute("data-ready", "1");
+      var w = webinars.filter(function (x) { return x.state === "open"; })[0];
+      var reserved = (taken[w.slug] || []).length;
+      var left = w.seats - reserved;
+      var pct = Math.round((reserved / w.seats) * 100);
+      var start = nextDrawAt(Date.now());
+      var small = window.innerWidth <= 380;
+      feat.innerHTML = '<p class="eyebrow xfeat-eyebrow">Next draw</p>'
+        + '<div class="xfeat-top"><div class="xfeat-thumb"><img src="' + w.photo + '" alt="' + esc(w.alt) + '" width="160" height="160"></div>'
+        + '<div class="xfeat-title"><span class="tag tag-gold">Seats open</span><h2>' + esc(w.title) + '</h2><span class="xfeat-val">Example retail value $' + Number(w.value).toLocaleString("en-US") + "</span></div></div>"
+        + '<p class="xfeat-when">' + esc(drawLabel(start)) + "</p>"
+        + '<div class="cd' + (small ? " cd-sm" : "") + '" id="feat-cd" role="timer" aria-label="Time until the next draw">' + cdHTML(start, small) + "</div>"
+        + '<div class="xfeat-seats"><div class="xbar" role="img" aria-label="' + pct + ' percent of seats reserved"><i style="width:' + pct + '%"></i></div>'
+        + '<div class="xfeat-seatline"><span><b>' + num(left) + "</b> of " + num(w.seats) + ' seats left</span><span class="seat-cost">' + coinSvg("SWEEP", 18) + "<b>" + w.price + "</b> per seat</span></div></div>"
+        + '<a class="btn btn-gold btn-lg btn-block" href="webinar.html?e=' + w.slug + '">' + ic("seat", 18) + "Reserve a seat</a>";
+      var cd = $("#feat-cd");
+      setInterval(function () {
+        if (!cd || !cd.isConnected) return;
+        cd.innerHTML = cdHTML(start, small);
+      }, 1000);
+    }
+    var wins = $("#winners");
+    if (wins && !wins.getAttribute("data-ready")) {
+      wins.setAttribute("data-ready", "1");
+      var rows = [
+        ["Danielle K.", "Ohio", "Diamond tennis bracelet", 88],
+        ["Grant O.", "Arizona", "Ten-ounce gold bar", 214],
+        ["Tessa M.", "Georgia", "Diamond halo studs", 301],
+        ["Helen P.", "Texas", "Akoya pearl strand", 42],
+        ["Marcus L.", "Colorado", "Two 100-ounce silver bars", 156],
+        ["Priya S.", "Illinois", "18k gold Cuban link", 77]
+      ];
+      var html = rows.map(function (r) {
+        return '<span class="win-item"><span class="win-seat">Seat ' + r[3] + "</span><b>" + esc(r[0]) + "</b><span>" + esc(r[1]) + '</span><span class="win-prize">' + esc(r[2]) + "</span></span>";
+      }).join("");
+      wins.innerHTML = '<div class="winners-set">' + html + '</div><div class="winners-set" aria-hidden="true">' + html + "</div>";
+      var band = wins.closest(".winners");
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (band && !reduce) {
+        var pause = document.createElement("button");
+        pause.type = "button";
+        pause.className = "winners-pause";
+        function paintPause() {
+          var on = band.classList.contains("is-paused");
+          pause.setAttribute("aria-pressed", on ? "true" : "false");
+          pause.setAttribute("aria-label", on ? "Play recent winners" : "Pause recent winners");
+          pause.innerHTML = ic(on ? "play" : "pause", 18);
+        }
+        pause.addEventListener("click", function () {
+          var on = band.classList.toggle("is-paused");
+          band.classList.toggle("is-resumed", !on);
+          paintPause();
+        });
+        band.addEventListener("mouseleave", function () { band.classList.remove("is-resumed"); });
+        paintPause();
+        band.appendChild(pause);
+      }
+    }
+    var wHost = $("#home-webinars");
+    var gHost = $("#home-games");
+    if (wHost) wHost.innerHTML = webinars.filter(function (x) { return x.state === "open"; }).map(webinarCard).join("");
+    if (gHost) gHost.innerHTML = games.slice(0, 4).map(gameTile).join("");
   }
   function paintGames() {
     var g = $("#game-floor");

@@ -50,7 +50,7 @@
       '<path d="M24 9l11 10H13z" fill="#fff6d6" fill-opacity=".25"/></svg>';
   }
   function coin(key, s, cls) {
-    var i = ids(), gold = key === "SOV"; s = s || 24;
+    var i = ids(), gold = key === "SOV" || key === "GOLD"; s = s || 24;
     var face = gold ? u(i.g) : u(i.s), rim = gold ? u(i.gh) : u(i.sh), ink = gold ? "#5a4210" : "#3a414d";
     var mark = gold
       ? '<path d="M15 29l-2-11 6 5 5-8 5 8 6-5-2 11z" fill="' + ink + '" fill-opacity=".72"/><rect x="15" y="30.5" width="18" height="2.6" rx="1.2" fill="' + ink + '" fill-opacity=".72"/>'
