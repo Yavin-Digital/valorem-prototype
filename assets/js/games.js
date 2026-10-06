@@ -34,7 +34,11 @@
   var userMovedSincePlay = false;
   var programmaticScroll = false;
   function noteUserMove() { userMovedSincePlay = true; }
-  window.addEventListener("touchstart", noteUserMove, { passive: true });
+  function noteTouch(e) {
+    if (e.target && e.target.closest && e.target.closest(".shell-controls")) return;
+    userMovedSincePlay = true;
+  }
+  window.addEventListener("touchstart", noteTouch, { passive: true });
   window.addEventListener("wheel", noteUserMove, { passive: true });
   window.addEventListener("scroll", function () {
     if (!programmaticScroll) userMovedSincePlay = true;
@@ -108,36 +112,119 @@
     ]
   };
 
+  var SYM = { wild: "diamond", s1: "ring", s2: "key", s3: "ingot", s4: "coin", s5: "silverbar", s6: "crown" };
+  var SCR = { m1: "coin", m2: "ring", m5: "key", m10: "diamond", m25: "ingot", m50: "silverbar", m100: "crown" };
+  var ORDER = ["crown", "diamond", "silverbar", "ingot", "ring", "key", "coin"];
+  function symSvg(name, size) {
+    return window.ValoremArt ? ValoremArt.symbol(name, size || 64) : "";
+  }
   function renderSlots(data, spinning) {
     var stage = document.querySelector("[data-stage]");
-    stage.innerHTML = '<p class="stage-label">Stage · ' + skin.displayName + '</p><div class="reels">' + data.grid[0].map(function (_, col) {
-      return '<div class="reel' + (spinning ? " is-spin" : "") + '">' + [0, 1, 2].map(function (row) {
-        return '<div class="sym">' + glyph(data.grid[row][col]) + "</div>";
-      }).join("") + "</div>";
-    }).join("") + "</div>";
+    var html = '<p class="stage-label">Stage · ' + skin.displayName + '</p><div class="sl-cabinet"><div class="sl-marquee"><b>' + skin.displayName + '</b><small>Five reels. The diamond stands in.</small></div><div class="sl-window" role="img" aria-label="Reels">';
+    for (var col = 0; col < 5; col++) {
+      var face = [0, 1, 2].map(function (row) { return SYM[data.grid[row][col]] || "coin"; });
+      var strip = face;
+      if (spinning) {
+        var fill = [];
+        for (var i = 0; i < 18 + col * 2; i++) fill.push(ORDER[(i + col * 3) % ORDER.length]);
+        strip = face.concat(fill);
+      }
+      var winRow = !spinning && data.grid[1].every(function (s) { return s === "wild"; });
+      html += '<div class="sl-reel' + (spinning ? " is-spin" : "") + '"><div class="sl-strip">' + strip.map(function (s, i) {
+        return '<div class="sl-cell' + (winRow && i === 1 ? " win" : "") + '">' + symSvg(s, 72) + "</div>";
+      }).join("") + "</div></div>";
+    }
+    html += "</div></div>";
+    stage.innerHTML = html;
+    if (!spinning) return;
+    stage.querySelectorAll(".sl-reel").forEach(function (re, r) {
+      var stripEl = re.querySelector(".sl-strip");
+      var cellH = re.clientHeight / 3 || 72;
+      var n = stripEl.children.length;
+      stripEl.style.transition = "none";
+      stripEl.style.transform = "translateY(" + (-(n - 3) * cellH) + "px)";
+      void stripEl.offsetHeight;
+      stripEl.style.transition = "transform " + (780 + r * 90) + "ms cubic-bezier(.18,.72,.3,1)";
+      stripEl.style.transform = "translateY(0)";
+    });
   }
-  function renderPlinko(data) {
+  var PK = { LEFT: 13, RIGHT: 387, PITCH: 34, SLOTS: 11, ROWS: 10, WALL: 3, RAIL: 24, TOP: 64, GAP: 27, PEG: 3.6, BALL: 8, SLOT_H: 36, W: 400 };
+  PK.SLOT_Y = PK.TOP + (PK.ROWS - 1) * PK.GAP + 22;
+  PK.H = PK.SLOT_Y + PK.SLOT_H + 8;
+  var PK_VALUES = [0.2, 0.3, 0.4, 0.7, 1, 1.4, 1, 0.7, 0.4, 0.3, 0.2];
+  function pkCenter(k) { return PK.LEFT + (k + 0.5) * PK.PITCH; }
+  function pkEdge(j) { return PK.LEFT + j * PK.PITCH; }
+  function pkRowY(r) { return PK.TOP + r * PK.GAP; }
+  function plinkoPath(bits) {
+    var a = 5, onCenter = true, i = a, lift = PK.PEG + PK.BALL - 1, pts = [{ x: pkCenter(a), y: PK.RAIL }], bi = 0;
+    function bit() { var v = bits[bi % bits.length]; bi++; return v; }
+    for (var r = 0; r < PK.ROWS; r++) {
+      var y = pkRowY(r);
+      if (onCenter) { pts.push({ x: pkCenter(i), y: y - lift }); if (bit()) i += 1; onCenter = false; }
+      else if (i === 0) { pts.push({ x: PK.LEFT + PK.PEG + PK.BALL, y: y }); i = 0; onCenter = true; }
+      else if (i === PK.SLOTS) { pts.push({ x: PK.RIGHT - PK.PEG - PK.BALL, y: y }); i = PK.SLOTS - 1; onCenter = true; }
+      else { pts.push({ x: pkEdge(i), y: y - lift }); if (!bit()) i -= 1; onCenter = true; }
+    }
+    pts.push({ x: pkCenter(i), y: PK.SLOT_Y - PK.BALL - 1 });
+    return { slot: i, points: pts };
+  }
+  function renderPlinko(data, animate) {
     var stage = document.querySelector("[data-stage]");
-    var rows = 8;
+    var drop = plinkoPath(data.path || [0]);
     var pegs = "";
-    for (var r = 0; r < rows; r++) {
-      for (var c = 0; c <= r; c++) {
-        var x = 50 + (c - r / 2) * 8;
-        var y = 12 + r * 10;
-        pegs += '<i class="peg" style="left:' + x + '%;top:' + y + '%"></i>';
+    for (var r = 0; r < PK.ROWS; r++) {
+      if (r % 2 === 0) {
+        for (var k = 0; k < PK.SLOTS; k++) pegs += '<circle class="pk-peg" cx="' + pkCenter(k) + '" cy="' + pkRowY(r) + '" r="' + PK.PEG + '"/>';
+      } else {
+        pegs += '<circle class="pk-peg wall" cx="' + PK.LEFT + '" cy="' + pkRowY(r) + '" r="' + PK.PEG + '"/>';
+        for (var j = 1; j < PK.SLOTS; j++) pegs += '<circle class="pk-peg" cx="' + pkEdge(j) + '" cy="' + pkRowY(r) + '" r="' + PK.PEG + '"/>';
+        pegs += '<circle class="pk-peg wall" cx="' + PK.RIGHT + '" cy="' + pkRowY(r) + '" r="' + PK.PEG + '"/>';
       }
     }
-    var x = 50;
-    var rights = 0;
-    data.path.forEach(function (bit) { rights += bit; });
-    x = 50 + (rights - (data.path.length - rights)) * 4;
-    stage.innerHTML = '<p class="stage-label">Stage · ' + skin.displayName + '</p><div class="pegboard">' + pegs + '<i class="ball" style="left:' + x + '%;top:92%"></i></div><p class="muted">' + (skin.copy["aim-note"] || "") + "</p>";
+    var slots = "";
+    PK_VALUES.forEach(function (m, k) {
+      var x = pkEdge(k) + PK.WALL / 2, w = PK.PITCH - PK.WALL;
+      var tier = m >= 1.4 ? "t1" : m >= 1 ? "t2" : m >= 0.7 ? "t3" : m >= 0.4 ? "t4" : "t5";
+      slots += '<g class="pk-slot ' + tier + ( !animate && drop.slot === k ? " landed" : "") + '" data-slot="' + k + '"><rect x="' + x + '" y="' + PK.SLOT_Y + '" width="' + w + '" height="' + PK.SLOT_H + '" rx="4"/><text x="' + (x + w / 2) + '" y="' + (PK.SLOT_Y + 23) + '" text-anchor="middle">' + m + "</text></g>";
+    });
+    var start = animate ? drop.points[0] : drop.points[drop.points.length - 1];
+    var svg = '<svg class="pk-svg" viewBox="0 0 ' + PK.W + " " + PK.H + '" role="img" aria-label="Plinko board">' +
+      '<rect x="' + PK.LEFT + '" y="18" width="' + (PK.RIGHT - PK.LEFT) + '" height="' + (PK.SLOT_Y - 10) + '" rx="8" class="pk-well"/>' +
+      pegs + slots +
+      '<circle class="pk-ball" data-land="' + drop.slot + '" cx="' + start.x + '" cy="' + start.y + '" r="' + PK.BALL + '"/>' +
+      "</svg>";
+    stage.innerHTML = '<p class="stage-label">Stage · ' + skin.displayName + '</p><div class="pk-stage">' + svg + '</div><p class="muted">' + (skin.copy["aim-note"] || "") + "</p>";
+    if (!animate) return;
+    var ball = stage.querySelector(".pk-ball");
+    var pts = drop.points;
+    var seg = 110;
+    var t0 = performance.now();
+    function frame(now) {
+      if (!ball.isConnected) return;
+      var t = Math.min(1, (now - t0) / ((pts.length - 1) * seg));
+      var f = t * (pts.length - 1);
+      var i = Math.min(pts.length - 2, Math.floor(f));
+      var u = f - i;
+      ball.setAttribute("cx", (pts[i].x + (pts[i + 1].x - pts[i].x) * u).toFixed(2));
+      ball.setAttribute("cy", (pts[i].y + (pts[i + 1].y - pts[i].y) * u).toFixed(2));
+      if (t < 1) requestAnimationFrame(frame);
+      else {
+        var landed = stage.querySelector('[data-slot="' + drop.slot + '"]');
+        if (landed) landed.classList.add("landed");
+      }
+    }
+    requestAnimationFrame(frame);
   }
   function renderVault(data) {
     var stage = document.querySelector("[data-stage]");
-    stage.innerHTML = '<p class="stage-label">Stage · ' + skin.displayName + '</p><div class="board">' + data.board.map(function (n) {
-      return '<div class="cell' + (n ? " on" : "") + '">' + (n ? n : "") + "</div>";
-    }).join("") + '</div><div class="schedule"><span>Start 25 ' + V.goldName + '</span><span>Mint 10 ' + V.goldName + '</span><span>No boosters</span><span>No race room</span></div>';
+    var trays = data.board.map(function (n) {
+      var pile = "";
+      for (var k = 0; k < n; k++) {
+        pile += '<i class="vs-coin' + (k === n - 1 ? " top" : "") + '" style="--k:' + k + '"><b>' + n + "</b></i>";
+      }
+      return '<div class="vs-tray' + (n ? " has" : "") + '">' + (n ? '<span class="vs-pile" style="--n:' + n + '">' + pile + "</span>" : "") + "</div>";
+    }).join("");
+    stage.innerHTML = '<p class="stage-label">Stage · ' + skin.displayName + '</p><div class="vs-frame"><div class="vs-board">' + trays + '</div><div class="vs-mint" aria-hidden="true"><span>Mint</span><b>10 ' + V.goldName + '</b></div></div><div class="schedule"><span>Start 25 ' + V.goldName + '</span><span>Mint 10 ' + V.goldName + '</span><span>No boosters</span><span>No race room</span></div>';
   }
   var kenoPicked = [];
   function renderKeno(data) {
@@ -147,12 +234,12 @@
     var cells = "";
     for (var n = 1; n <= 80; n++) {
       var mine = kenoPicked.indexOf(n) >= 0;
-      var drawn = draws.indexOf(n) >= 0;
-      var hit = mine && hits.indexOf(n) >= 0;
+      var drawn = !data.animate && draws.indexOf(n) >= 0;
+      var hit = mine && !data.animate && hits.indexOf(n) >= 0;
       var cls = "spot" + (mine ? " pick" : "") + (drawn ? " draw" : "") + (hit ? " hit" : "");
       cells += '<button class="' + cls + '" type="button" data-n="' + n + '" aria-pressed="' + (mine ? "true" : "false") + '" aria-label="Spot ' + n + '">' + n + "</button>";
     }
-    stage.innerHTML = '<p class="stage-label">Stage · ' + skin.displayName + '</p><p class="keno-tools"><button class="btn btn-ghost" type="button" id="quick-pick">Quick pick</button></p><div class="keno-grid">' + cells + "</div>";
+    stage.innerHTML = '<p class="stage-label">Stage · ' + skin.displayName + '</p><div class="kn-head"><p class="keno-tools"><button class="btn btn-ghost" type="button" id="quick-pick">Quick pick</button></p><div class="kn-balls" aria-hidden="true"></div></div><div class="keno-grid">' + cells + "</div>";
     stage.querySelector(".keno-grid").onclick = function (e) {
       var btn = e.target.closest("[data-n]");
       if (!btn) return;
@@ -167,12 +254,25 @@
       kenoPicked = [3, 14, 22, 41, 60].slice();
       renderKeno(data);
     };
+    if (data.animate && draws.length) {
+      draws.forEach(function (n, i) {
+        setTimeout(function () {
+          if (!stage.isConnected) return;
+          var b = stage.querySelector('[data-n="' + n + '"]');
+          if (!b) return;
+          b.classList.add("draw");
+          if (kenoPicked.indexOf(n) >= 0 && hits.indexOf(n) >= 0) b.classList.add("hit");
+          var rail = stage.querySelector(".kn-balls");
+          if (rail) rail.insertAdjacentHTML("beforeend", "<b>" + n + "</b>");
+        }, 90 * i);
+      });
+    }
   }
   function renderScratch(data) {
     var stage = document.querySelector("[data-stage]");
-    stage.innerHTML = '<p class="stage-label">Stage · ' + skin.displayName + '</p><div class="scratch-grid">' + data.marks.map(function (m, i) {
-      return '<button class="foil' + (data.open ? " open" : "") + '" type="button" data-i="' + i + '" aria-label="Scratch spot ' + (i + 1) + '">' + glyph(m) + "</button>";
-    }).join("") + "</div>";
+    stage.innerHTML = '<p class="stage-label">Stage · ' + skin.displayName + '</p><div class="sc-card"><div class="sc-title"><b>' + skin.displayName + '</b><small>Match three</small></div><div class="scratch-grid">' + data.marks.map(function (m, i) {
+      return '<button class="foil sc-cell' + (data.open ? " open" : "") + '" type="button" data-i="' + i + '" aria-label="Scratch spot ' + (i + 1) + '"><span class="sc-prize">' + symSvg(SCR[m] || "coin", 48) + "<b>" + glyph(m) + '</b></span><span class="sc-foil"></span></button>';
+    }).join("") + "</div></div>";
     var grid = stage.querySelector(".scratch-grid");
     var dragging = false;
     function reveal(el) {
@@ -194,9 +294,34 @@
     grid.addEventListener("pointerup", stopDrag);
     grid.addEventListener("pointercancel", stopDrag);
   }
-  function renderRoulette(data) {
+  var WHEEL = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
+  var REDS = { 1: 1, 3: 1, 5: 1, 7: 1, 9: 1, 12: 1, 14: 1, 16: 1, 18: 1, 19: 1, 21: 1, 23: 1, 25: 1, 27: 1, 30: 1, 32: 1, 34: 1, 36: 1 };
+  function renderRoulette(data, animate) {
     var stage = document.querySelector("[data-stage]");
-    stage.innerHTML = '<p class="stage-label">Stage · ' + skin.displayName + '</p><div class="wheel-wrap"><div class="pointer"></div><div class="wheel" style="transform:rotate(' + data.turn + 'deg)"></div></div><p class="muted">' + (data.pocket ? "Scripted pocket " + data.pocket + "." : "Wheel at rest.") + "</p>";
+    var n = WHEEL.length;
+    var slice = Math.PI * 2 / n;
+    var wedges = WHEEL.map(function (num, i) {
+      var a0 = i * slice - Math.PI / 2;
+      var a1 = (i + 1) * slice - Math.PI / 2;
+      var R = 142, r = 78;
+      function pt(a, rad) { return (160 + rad * Math.cos(a)).toFixed(2) + " " + (160 + rad * Math.sin(a)).toFixed(2); }
+      var mid = (a0 + a1) / 2;
+      var color = num === 0 ? "#0d3b28" : REDS[num] ? "#9d2a32" : "#123024";
+      var tx = (160 + 112 * Math.cos(mid)).toFixed(2);
+      var ty = (160 + 112 * Math.sin(mid)).toFixed(2);
+      return '<path d="M' + pt(a0, R) + " A" + R + " " + R + " 0 0 1 " + pt(a1, R) + " L" + pt(a1, r) + " A" + r + " " + r + " 0 0 0 " + pt(a0, r) + ' Z" fill="' + color + '"/><text aria-hidden="true" x="' + tx + '" y="' + ty + '" fill="#f4f6f4" font-size="14" font-weight="700" text-anchor="middle" dominant-baseline="middle" transform="rotate(' + ((mid * 180 / Math.PI) + 90).toFixed(2) + " " + tx + " " + ty + ')">' + num + "</text>";
+    }).join("");
+    var pocket = data.pocket ? parseInt(data.pocket, 10) : 0;
+    var idx = WHEEL.indexOf(pocket);
+    if (idx < 0) idx = 0;
+    var align = -((idx + 0.5) * (360 / n));
+    var end = data.pocket ? align + 360 * 5 : 0;
+    stage.innerHTML = '<p class="stage-label">Stage · ' + skin.displayName + '</p><div class="rl-wrap"><div class="rl-pointer"></div><div class="rl-rotor" style="transform:rotate(' + (animate ? 0 : end) + 'deg)"><svg viewBox="0 0 320 320" class="rl-svg" role="img" aria-label="Roulette wheel">' + wedges + '<circle cx="160" cy="160" r="46" fill="#07140e" stroke="#d9b75f" stroke-width="3"/><circle cx="160" cy="160" r="150" fill="none" stroke="#d9b75f" stroke-width="8"/><circle cx="160" cy="160" r="70" fill="none" stroke="#c3cad6" stroke-width="2"/></svg></div><div class="rl-arm' + (animate ? " is-spin" : "") + '"><i class="rl-ball"></i></div></div><p class="muted">' + (data.pocket ? "Scripted pocket " + data.pocket + "." : "Wheel at rest.") + "</p>";
+    if (!animate) return;
+    var rotor = stage.querySelector(".rl-rotor");
+    void rotor.offsetHeight;
+    rotor.style.transition = "transform 1.5s cubic-bezier(.15,.7,.2,1)";
+    rotor.style.transform = "rotate(" + end + "deg)";
   }
   var suitSvg = {
     spade: '<svg class="suit" viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M10 1.2c.4 2.2 2.2 3.6 4.2 4.6 1.6.8 2.8 2.2 2.8 4.1a3.4 3.4 0 0 1-5.2 2.9c.5 1.6 1.2 3.2 1.6 4.4H6.6c.4-1.2 1.1-2.8 1.6-4.4A3.4 3.4 0 0 1 3 9.9c0-1.9 1.2-3.3 2.8-4.1C7.8 4.8 9.6 3.4 10 1.2z"/></svg>',
@@ -211,7 +336,7 @@
         return '<div class="playing-card ' + c[2] + '"><span>' + c[0] + "</span>" + (suitSvg[c[1]] || "") + "</div>";
       }).join("") + "</div>";
     }
-    stage.innerHTML = '<p class="stage-label">Stage · ' + skin.displayName + '</p><p class="hand-label">You</p>' + cards(data.you) + '<p class="hand-label">Dealer</p>' + cards(data.dealer);
+    stage.innerHTML = '<p class="stage-label">Stage · ' + skin.displayName + '</p><div class="bj-table"><p class="bj-who">Dealer</p>' + cards(data.dealer) + '<p class="bj-who">You</p>' + cards(data.you) + "</div>";
   }
   function renderArcade() {
     var stage = document.querySelector("[data-stage]");
@@ -258,7 +383,21 @@
         painter(data, false);
         showResult(data.text, true);
         release(btn);
-      }, 700);
+      }, 1400);
+    } else if (id === "plinko" || id === "roulette") {
+      painter(data, true);
+      setTimeout(function () {
+        showResult(data.text, true);
+        release(btn);
+      }, id === "roulette" ? 1600 : 1500);
+    } else if (id === "keno") {
+      if (data.picks && data.picks.length) kenoPicked = data.picks.slice();
+      var drawing = data.draw && data.draw.length;
+      painter(Object.assign({}, data, { animate: !!drawing }));
+      setTimeout(function () {
+        showResult(data.text, true);
+        release(btn);
+      }, drawing ? 90 * data.draw.length + 200 : 0);
     } else {
       painter(data, false);
       showResult(data.text, true);
