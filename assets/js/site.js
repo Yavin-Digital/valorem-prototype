@@ -11,13 +11,13 @@
   }
 
   var games = [
-    { id: "slots", href: "game-slots.html", kind: "Valorem wager", line: "Five reels and a diamond that stands in.", rtp: "Package figure 96.04 percent. Not a certified PAR sheet." },
-    { id: "plinko", href: "game-plinko.html", kind: "Valorem wager", line: "A fixed sample path through the pegs.", rtp: "Package figure 96.02 percent at center aim. Other aims return less. Not a certified PAR sheet." },
-    { id: "vault-stack", href: "game-vault-stack.html", kind: "Valorem wager", line: "25 Valorem to start. 10 Valorem to mint.", rtp: "No single RTP. Published schedule: start 25, mint 10, merges 20 and 5, peak 10, tier clear 100." },
-    { id: "keno", href: "game-keno.html", kind: "Valorem wager", line: "Pick spots. The draw is server-side.", rtp: "Package figures 95.00 to 96.05 percent by pick count. Not a certified PAR sheet." },
-    { id: "scratch", href: "game-scratch.html", kind: "Valorem wager", line: "A sample card with a fixed reveal.", rtp: "Package figure 94 percent. Not a certified PAR sheet." },
-    { id: "roulette", href: "game-roulette.html", kind: "Valorem wager", line: "Single-zero wheel. Sample pocket only.", rtp: "Package figure 97.30 percent. Not a certified PAR sheet." },
-    { id: "blackjack", href: "game-blackjack.html", kind: "Valorem wager", line: "A scripted hand. No total is scored here.", rtp: "Package figure 99.49 percent (95 percent CI 99.29 to 99.69). Not a certified PAR sheet." },
+    { id: "slots", href: "game-slots.html", kind: "Valorem wager", tile: "slots", line: "Five reels and a diamond that stands in.", rtp: "Package figure 96.04 percent. Not a certified PAR sheet." },
+    { id: "plinko", href: "game-plinko.html", kind: "Valorem wager", tile: "plinko", line: "A fixed sample path through the pegs.", rtp: "Package figure 96.02 percent at center aim. Other aims return less. Not a certified PAR sheet." },
+    { id: "vault-stack", href: "game-vault-stack.html", kind: "Valorem wager", tile: "vault", line: "25 Valorem to start. 10 Valorem to mint.", rtp: "No single RTP. Published schedule: start 25, mint 10, merges 20 and 5, peak 10, tier clear 100." },
+    { id: "keno", href: "game-keno.html", kind: "Valorem wager", tile: "keno", line: "Pick spots. The draw is server-side.", rtp: "Package figures 95.00 to 96.05 percent by pick count. Not a certified PAR sheet." },
+    { id: "scratch", href: "game-scratch.html", kind: "Valorem wager", tile: "scratch", line: "A sample card with a fixed reveal.", rtp: "Package figure 94 percent. Not a certified PAR sheet." },
+    { id: "roulette", href: "game-roulette.html", kind: "Valorem wager", tile: "roulette", line: "Single-zero wheel. Sample pocket only.", rtp: "Package figure 97.30 percent. Not a certified PAR sheet." },
+    { id: "blackjack", href: "game-blackjack.html", kind: "Valorem wager", tile: "cards", line: "A scripted hand. No total is scored here.", rtp: "Package figure 99.49 percent (95 percent CI 99.29 to 99.69). Not a certified PAR sheet." },
     { id: "hold-the-span", href: "game-hold-the-span.html", kind: "Free play", line: "Steer a squad. No wager.", rtp: "No wager and nothing is paid.", arcade: "arcade/hold-the-span/index.html", art: "assets/img/hold-the-span-card.webp" },
     { id: "precinct-rumble", href: "game-precinct-rumble.html", kind: "Free play", line: "A brawler. No wager.", rtp: "No wager and nothing is paid.", arcade: "arcade/precinct-rumble/index.html", art: "assets/img/precinct-rumble-card.webp" },
     { id: "skyline-siege", href: "game-skyline-siege.html", kind: "Free play", line: "A run-and-gun. No wager.", rtp: "No wager and nothing is paid.", arcade: "arcade/skyline-siege/index.html", art: "assets/img/skyline-siege-card.webp" }
@@ -259,7 +259,7 @@
     var s = skin(g.id);
     var media = g.art
       ? '<img src="' + g.art + '" alt="" width="640" height="360">'
-      : '<span class="mark" aria-hidden="true">' + PACK.logoGlyph + "</span>";
+      : (window.ValoremArt && g.tile ? ValoremArt.art(g.tile) : '<span class="mark" aria-hidden="true">' + PACK.logoGlyph + "</span>");
     return '<a class="card tile lift" href="' + g.href + '"><div class="tile-media">' + media + '</div><div class="tile-body"><span class="tag">' + g.kind + "</span><h3>" + s.displayName + "</h3><p class='muted'>" + g.line + '</p><div class="tile-foot"><span class="faint">' + (g.kind === "Free play" ? "No wager" : GOLD) + '</span><span class="btn btn-gold">Open</span></div></div></a>';
   }
   function webinarCard(w) {
