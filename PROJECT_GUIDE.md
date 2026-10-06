@@ -65,7 +65,7 @@ Wager rounds are labelled Sample round and use fixed sequences. `assets/js` does
 - GOLD displays as Valorem. Plural is Valorem.
 - SWEEP displays as Ips.
 - Suggested rate on the pack: `sweepPerDollar` 1.
-- Sample opening balance after sign-in: 25,000 Valorem and 80 Ips, on this device only.
+- Sample opening balance: 25,000 Valorem and 80 Ips, on this device only. A fresh visit starts signed in so the header shows both coins. Sign out is on the account screen.
 - A declined sample card (4000 0000 0000 0002) adds nothing.
 - A shop order can apply Ips at 1 per dollar, down to $0. There is no per-item cap.
 
@@ -103,4 +103,4 @@ Point `check.ts` at `theme/valorem.theme.json` and at `rez-core` `packages/contr
 
 ## What this prototype does not include
 
-VIP, live draw room, winner marquee, host console, admin, email templates, mail-in entry, state list, client-side game RNG, payout math, and sponsor placements.
+VIP, live draw room, host console, admin, email templates, mail-in entry, state list, client-side game RNG, payout math, and sponsor placements. The home does include a sample winners strip and the next webinar card.

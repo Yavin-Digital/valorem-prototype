@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#07140e">
-<meta name="description" content="Valorem">
-<title>Valorem</title>
+<meta name="description" content="Social casino games and live webinars. Play with Valorem. Reserve a numbered seat with Ips.">
+<title>Social casino and webinars · Valorem</title>
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/tokens.css">
 <link rel="stylesheet" href="assets/css/site.css">
@@ -17,27 +17,42 @@
 <script src="assets/js/art.js"></script>
 <script src="assets/js/site.js"></script>
 <script src="assets/js/layout.js"></script>
-<main id="main">
+<main id="main" class="home">
 
-<section class="hero">
-  <div class="hero-media"><picture><source media="(orientation: portrait)" srcset="assets/img/hero-gold-p600.webp 600w, assets/img/hero-gold-p900.webp 900w" sizes="100vw"><img src="assets/img/hero-gold-1280.webp" srcset="assets/img/hero-gold-800.webp 800w, assets/img/hero-gold-1280.webp 1280w, assets/img/hero-gold-1600.webp 1600w" sizes="100vw" alt="" width="1600" height="900"></picture></div>
-  <div class="hero-shade"></div>
-  <div class="wrap hero-copy">
-    <p class="eyebrow">Valorem</p>
-    <h1>Fine metal.<br><em class="gild">A numbered seat.</em></h1>
-    <p class="lede">Fine jewelry, gold and silver bullion, and live webinars. Play with Valorem. Reserve a numbered seat with Ips.</p>
-    <div class="btn-row">
-      <a class="btn btn-gold" href="games.html">Play games</a>
-      <a class="btn btn-ghost" href="webinars.html">See webinars</a>
+<section class="xhero" aria-labelledby="heroTitle">
+  <div class="xhero-media" aria-hidden="true">
+    <picture>
+      <source media="(max-width: 600px) and (orientation: portrait)" srcset="assets/img/hero-gold-p600.webp 600w, assets/img/hero-gold-p900.webp 900w" sizes="100vw">
+      <img class="xhero-img" src="assets/img/hero-gold-1280.webp" srcset="assets/img/hero-gold-800.webp 800w, assets/img/hero-gold-1280.webp 1280w, assets/img/hero-gold-1600.webp 1600w, assets/img/hero-gold-2000.webp 2000w" sizes="(min-width: 601px) and (max-width: 860px) and (orientation: portrait) 150vw, 100vw" alt="" width="1600" height="900" fetchpriority="high" decoding="async">
+    </picture>
+  </div>
+  <div class="xhero-shade" aria-hidden="true"></div>
+  <div class="wrap xhero-grid">
+    <div class="xhero-copy">
+      <p class="eyebrow">Social casino games · Live webinars</p>
+      <h1 id="heroTitle">Fine metal.<br><em class="gild shine">A numbered seat.</em></h1>
+      <p class="lede">Play beautifully made games with Valorem. Use Ips to reserve seats in live webinars, or to save in the shop.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-gold btn-lg" href="games.html" data-ic="play">Play games</a>
+        <a class="btn btn-glass btn-lg" href="webinars.html">See webinars</a>
+      </div>
+      <div class="hero-trust" id="hero-trust"></div>
     </div>
+    <aside class="xfeat" id="featured" aria-label="Next webinar"></aside>
   </div>
 </section>
+
+<section class="winners" aria-label="Recent winners, sample data">
+  <div class="winners-label"><span class="live-dot">Recent winners</span><small>Sample data</small></div>
+  <div class="winners-rail"><div class="winners-track" id="winners"></div></div>
+</section>
+
 <section class="band">
   <div class="wrap">
     <p class="eyebrow">How a visit works</p>
-    <h2>Two coins, then the room you came for.</h2>
-    <ol class="steps" style="margin-top:28px">
-      <li><span class="num">1</span><div><h3>Play with Valorem</h3><p class="muted">Valorem is the game coin. It has no cash value. In the live product, outcomes are decided on the server.</p></div></li>
+    <h2>Two coins, then the seat you came for.</h2>
+    <ol class="steps">
+      <li><span class="num">1</span><div><h3>Play with Valorem</h3><p class="muted">Valorem is the game coin. It has no cash value. Sample rounds are fixed. The live product decides outcomes on the server.</p></div></li>
       <li><span class="num">2</span><div><h3>Reserve with Ips</h3><p class="muted">Ips are for numbered webinar seats and for marking a shop total down. A hold lasts 45 seconds.</p></div></li>
       <li><span class="num">3</span><div><h3>Shop the sample catalog</h3><p class="muted">Jewelry, gold bullion, and silver bullion. Prices here are samples.</p></div></li>
     </ol>
@@ -45,7 +60,7 @@
 </section>
 <section class="band band-alt">
   <div class="wrap">
-    <div class="section-head"><div><p class="eyebrow">Webinars</p><h2>Numbered seats</h2></div><a class="btn btn-ghost" href="webinars.html">All webinars</a></div>
+    <div class="section-head"><div><p class="eyebrow">Webinars</p><h2>Numbered seats</h2><p class="muted">Reserve with Ips. One sample listing, one seat map.</p></div><a class="btn btn-ghost" href="webinars.html">All webinars</a></div>
     <div class="grid g3" id="home-webinars"></div>
   </div>
 </section>
@@ -57,11 +72,10 @@
 </section>
 <section class="band band-alt">
   <div class="wrap">
-    <p class="eyebrow">Two coins</p>
-    <h2>Valorem and Ips</h2>
-    <div class="coins" style="margin-top:22px">
-      <article class="coin-card gold"><span class="tag tag-gold">GOLD</span><h3>Valorem</h3><p>The game coin. One or many, the word stays Valorem. No cash value.</p></article>
-      <article class="coin-card ips"><span class="tag tag-silver">SWEEP</span><h3>Ips</h3><p>Seats and shop markdown. The sample suggestion is 1 Ips per $1. Ips are not sold.</p></article>
+    <div class="section-head"><div><p class="eyebrow">Two coins</p><h2>Valorem and Ips</h2></div><a class="btn btn-ghost" href="how-it-works.html">How it works</a></div>
+    <div class="coins">
+      <article class="coin-card gold"><span class="tag tag-gold">Gold</span><h3>Valorem</h3><p>The game coin. One or many, the word stays Valorem. No cash value.</p></article>
+      <article class="coin-card ips"><span class="tag tag-silver">Silver</span><h3>Ips</h3><p>Seats and shop markdown. The sample suggestion is 1 Ips per $1. Ips are not sold.</p></article>
     </div>
   </div>
 </section>
@@ -70,10 +84,19 @@
     <img src="assets/img/lifestyle-gold-chain-1100.webp" alt="A gold link necklace worn against a black top" width="1100" height="1375">
     <div>
       <p class="eyebrow">Shop</p>
-      <h2>Jewelry and bullion, labelled as samples.</h2>
-      <p class="lede">Eight sample pieces from the sales photography set. No per-item Ips cap.</p>
-      <a class="btn btn-gold" href="shop.html">Open the shop</a>
+      <h2>Real goods. <em class="gild">Ips take money off.</em></h2>
+      <p class="lede">Eight sample pieces. Jewelry, gold bullion, and silver bullion. Ips can mark the total down to $0.</p>
+      <a class="btn btn-gold btn-lg" href="shop.html" data-ic="bag">Visit the shop</a>
     </div>
+  </div>
+</section>
+<section class="xcta" aria-labelledby="freeTitle">
+  <div class="xcta-media" aria-hidden="true"><img src="assets/img/silver-kilo-bar-800.webp" srcset="assets/img/silver-kilo-bar-800.webp 800w, assets/img/silver-kilo-bar.webp 1200w" sizes="100vw" alt="" width="1200" height="800"></div>
+  <div class="wrap xcta-inner">
+    <p class="eyebrow">No purchase necessary</p>
+    <h2 id="freeTitle">Free entry stays open.</h2>
+    <p class="lede">Request Ips on the web form. The amount and any caps are set by the operator. Submitting records the request. It does not credit Ips by itself.</p>
+    <a class="btn btn-silver btn-lg" href="amoe.html" data-ic="gift">Get free Ips</a>
   </div>
 </section>
 

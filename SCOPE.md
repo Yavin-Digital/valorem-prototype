@@ -51,4 +51,4 @@ Unknowns are left blank on purpose. Do not treat a blank as a researched value.
 
 ## Not in scope
 
-VIP tiers, live draw room, winner marquees, host console, admin, email templates, client-side outcomes, payout math, and sponsor placements.
+VIP tiers, live draw room, host console, admin, email templates, client-side outcomes, payout math, and sponsor placements. The home winners strip and next-webinar card are sample chrome, not a live draw room.
